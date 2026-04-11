@@ -1,16 +1,38 @@
-# React + Vite
+# Frontend - Botcachino
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web del proyecto Botcachino.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19
+- Vite (bundler)
+- Bun (gestor de paquetes)
+- Plain JSX (sin TypeScript)
 
-## React Compiler
+## Comandos
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+bun install      # Instalar dependencias
+bun run dev      # Servidor de desarrollo (http://localhost:5173)
+bun run build    # Build de producción
+bun run lint     # Verificar código con ESLint
+bun run preview  # Previsualizar build
+```
 
-## Expanding the ESLint configuration
+## Estructura
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+├── App.jsx       # Componente principal
+├── App.css       # Estilos
+├── main.jsx      # Entry point
+└── index.css     # Estilos globales
+```
+
+## Linting
+
+El proyecto usa ESLint con configuración flat. La regla `varsIgnorePattern: '^[A-Z_]'` permite variables sin usar que empiecen con mayúscula o underscore.
+
+```bash
+bun run lint  # Verificar código
+```
