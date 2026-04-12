@@ -1,3 +1,4 @@
+from datetime import UTC
 from typing import List, Optional
 
 from sqlalchemy import select
@@ -22,7 +23,7 @@ class NewsService:
         from datetime import datetime
 
         db_news = News.model_validate(news)
-        db_news.created_at = datetime.utcnow()
+        db_news.created_at = datetime.now(UTC)
         self.session.add(db_news)
         await self.session.commit()
         await self.session.refresh(db_news)

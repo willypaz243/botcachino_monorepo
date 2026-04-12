@@ -1,3 +1,4 @@
+from datetime import UTC
 from typing import List, Optional
 
 from sqlalchemy import select
@@ -22,7 +23,7 @@ class InfoService:
         from datetime import datetime
 
         db_info = Info.model_validate(info)
-        db_info.created_at = datetime.utcnow()
+        db_info.created_at = datetime.now(UTC)
         self.session.add(db_info)
         await self.session.commit()
         await self.session.refresh(db_info)
