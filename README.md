@@ -77,18 +77,18 @@ botcachino_monorepo/
 ├── src/                      # Código Python
 │   ├── api/                  # Endpoints y lógica de API
 │   │   ├── routes/           # Routers FastAPI
-│   │   │   ├── news_router.py
-│   │   │   └── info_router.py
+│   │   │   ├── content_router.py
+│   │   │   └── __init__.py
 │   │   ├── services/         # Lógica de negocio
-│   │   │   ├── news_service.py
-│   │   │   └── info_service.py
+│   │   │   └── content_service.py
 │   │   ├── dependencies.py   # Inyección de dependencias
 │   │   └── server.py         # App FastAPI
 │   ├── db/                   # Configuración de base de datos
 │   │   ├── database.py       # Engine async y session maker
+│   │   ├── init-db/          # Scripts de inicialización de DB
+│   │   │   └── init.sql
 │   │   └── models/           # Modelos SQLModel
-│   │       ├── news.py
-│   │       └── info.py
+│   │       └── content.py
 │   └── agent/                # Lógica de agente (placeholder)
 ├── web/                      # Frontend React
 │   ├── src/                  # Componentes React
@@ -102,41 +102,58 @@ botcachino_monorepo/
 
 ## API Endpoints
 
-### News
+### Content
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| GET | `/news/` | Listar todas las noticias |
-| GET | `/news/{id}` | Obtener noticia por ID |
-| POST | `/news/` | Crear nueva noticia |
-| PUT | `/news/{id}` | Actualizar noticia |
-| DELETE | `/news/{id}` | Eliminar noticia |
+| GET | `/content/` | Listar todo el contenido |
+| GET | `/content/{id}` | Obtener contenido por ID |
+| POST | `/content/` | Crear nuevo contenido |
+| PATCH | `/content/{id}` | Actualizar contenido |
+| DELETE | `/content/{id}` | Eliminar contenido |
 
-### Info
+### Content Model
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/info/` | Listar toda la información |
-| GET | `/info/{id}` | Obtener información por ID |
-| POST | `/info/` | Crear nueva información |
-| PUT | `/info/{id}` | Actualizar información |
-| DELETE | `/info/{id}` | Eliminar información |
+El modelo `Content` incluye:
+- **title**: Título (2-200 caracteres)
+- **summary**: Resumen (2-500 caracteres)
+- **category**: Categoría (INFO, NEW)
+- **content**: Cuerpo del contenido
+- **post_date**: Fecha de publicación
+- **embedding**: Vector de 4096 dimensiones para búsqueda semántica
+- **created_at**: Timestamp de creación
+- **updated_at**: Timestamp de actualización
 
 ### Ejemplo de uso
 
 ```bash
-# Crear noticia
-curl -X POST http://127.0.0.1:8000/news/ \
+# Crear contenido
+curl -X POST http://127.0.0.1:8000/content/ \
   -H "Content-Type: application/json" \
-  -d '{"title": "Título", "content": "Contenido", "category": "tech"}'
+  -d '{
+    "title": "Título del contenido",
+    "summary": "Resumen breve",
+    "category": "INFO",
+    "content": "Contenido completo del artículo...",
+    "post_date": "2026-01-01T10:00:00"
+  }'
 
-# Listar noticias
-curl http://127.0.0.1:8000/news/
+# Listar contenido
+curl http://127.0.0.1:8000/content/
+
+# Obtener por ID
+curl http://127.0.0.1:8000/content/1
 
 # Actualizar
-curl -X PUT http://127.0.0.1:8000/news/1 \
+curl -X PATCH http://127.0.0.1:8000/content/1 \
   -H "Content-Type: application/json" \
-  -d '{"title": "Título actualizado"}'
+  -d '{
+    "title": "Título actualizado",
+    "summary": "Resumen actualizado"
+  }'
+
+# Eliminar
+curl -X DELETE http://127.0.0.1:8000/content/1
 ```
 
 ## Comandos Útiles
@@ -178,7 +195,7 @@ docker compose exec db psql -U postgres -d botcachino  # CLI de PostgreSQL
 
 - **Async**: Todas las operaciones de base de datos son asíncronas (`async/await`)
 - **Modelos**: Usar SQLModel con las variantes `*Base`, `*Create`, `*Update`, `*Read`
-- **Timestamps**: Usar `datetime.utcnow()` para mantener consistencia con PostgreSQL
+- **Timestamps**: Usar `datetime.now(UTC)` para mantener consistencia con PostgreSQL
 - **Sesiones**: Inyectar vía `Depends()` en los routers
 
 ### Frontend
