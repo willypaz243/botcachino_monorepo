@@ -142,3 +142,9 @@
     gap: 10px;
   }
 }
+
+.chat-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
