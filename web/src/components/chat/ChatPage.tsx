@@ -8,7 +8,7 @@ import "./ChatPage.css";
 
 export default function ChatPage() {
   const { messages, isLoading, isOnline, sendMessage, clearChat } = useChat();
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
