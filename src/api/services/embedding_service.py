@@ -1,0 +1,24 @@
+import re
+
+from langchain_core.embeddings import Embeddings
+
+
+class EmbbedingService:
+    def __init__(self, emb_model: Embeddings) -> None:
+        self.__emb_model = emb_model
+
+    @property
+    def emb_model(self) -> Embeddings:
+        return self.__emb_model
+
+    def embed_text(self, text: str) -> list[float]:
+        return self.emb_model.embed_query(text)
+
+    def embed_many_texts(self, texts: list[str]) -> list[list[float]]:
+        return self.emb_model.embed_documents(texts)
+
+    def pre_process_text(self, text: str) -> str:
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9\s]", "", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text

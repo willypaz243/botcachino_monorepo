@@ -3,15 +3,32 @@ from sqlmodel import select
 
 from src.db.models.content import Content, ContentCreate, ContentUpdate
 
+from .embedding_service import EmbbedingService
+
 
 class ContentService:
-    def __init__(self, session: AsyncSession):
-        self.session = session
+    def __init__(self, session: AsyncSession, emb_service: EmbbedingService):
+        self.__session = session
+        self.__emb_service = emb_service
+
+    @property
+    def session(self) -> AsyncSession:
+        return self.__session
+
+    @property
+    def emb_service(self) -> EmbbedingService:
+        return self.__emb_service
 
     async def create_content(self, content_in: ContentCreate) -> Content:
+        text_content = (
+            f"#{self.emb_service.pre_process_text(content_in.title)}\n\n"
+            f"## Summary\n{self.emb_service.pre_process_text(content_in.summary)}\n\n"
+            f"## Content\n{self.emb_service.pre_process_text(content_in.content)}"
+        )
+
         new_content = Content(**content_in.model_dump())
-        # Placeholder for embedding generation logic
-        new_content.embedding = [0.0] * 4096
+        new_content.embedding = self.emb_service.embed_text(text_content)
+
         self.session.add(new_content)
         await self.session.commit()
         await self.session.refresh(new_content)
