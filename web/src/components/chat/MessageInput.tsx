@@ -1,8 +1,15 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, type FormEvent, type KeyboardEvent } from 'react';
 import './MessageInput.css';
 
-export default function MessageInput({ onSend, disabled, value, onChange }) {
-  const textareaRef = useRef(null);
+interface MessageInputProps {
+  onSend: (_message: string) => void;
+  disabled: boolean;
+  value: string;
+  onChange: (_value: string) => void;
+}
+
+export default function MessageInput({ onSend, disabled, value, onChange }: MessageInputProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -12,14 +19,14 @@ export default function MessageInput({ onSend, disabled, value, onChange }) {
     }
   }, [value]);
 
-  function handleSubmit(e) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!value.trim() || disabled) return;
     onSend(value);
     onChange('');
   }
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);

@@ -1,7 +1,18 @@
 import { useState } from "react";
 import "./NewsSidebar.css";
 
-const MOCK_NOTICIAS = [
+interface Noticia {
+  id: number;
+  titulo: string;
+  categoria: string;
+  emoji: string;
+}
+
+interface NewsSidebarProps {
+  onSelect: (texto: string) => void;
+}
+
+const MOCK_NOTICIAS: Noticia[] = [
   {
     id: 1,
     titulo:
@@ -46,7 +57,8 @@ const MOCK_NOTICIAS = [
     emoji: "🔄",
   },
 ];
-export default function NewsSidebar({ onSelect }) {
+
+export default function NewsSidebar({ onSelect }: NewsSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
