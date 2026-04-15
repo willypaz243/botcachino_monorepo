@@ -78,23 +78,30 @@ botcachino_monorepo/
 │   ├── api/                  # Endpoints y lógica de API
 │   │   ├── routes/           # Routers FastAPI
 │   │   │   ├── content_router.py
+│   │   │   ├── schemas.py
 │   │   │   └── __init__.py
 │   │   ├── services/         # Lógica de negocio
-│   │   │   └── content_service.py
+│   │   │   ├── content_service.py
+│   │   │   └── embedding_service.py
 │   │   ├── dependencies.py   # Inyección de dependencias
 │   │   └── server.py         # App FastAPI
 │   ├── db/                   # Configuración de base de datos
 │   │   ├── database.py       # Engine async y session maker
-│   │   ├── init-db/          # Scripts de inicialización de DB
-│   │   │   └── init.sql
-│   │   └── models/           # Modelos SQLModel
-│   │       └── content.py
+│   │   ├── models/           # Modelos SQLModel
+│   │   │   └── content.py
 │   └── agent/                # Lógica de agente (placeholder)
+├── data/                     # Datos de ejemplo para seeding
+│   ├── scholarship.json      # Becas y movilidad internacional
+│   ├── news.json             # Noticias e información del campus
+│   └── announcements.json    # Anuncios y actividades
+├── scripts/                  # Scripts de utilidad
+│   └── seed_data.py          # Script para sembrar la base de datos
 ├── web/                      # Frontend React
 │   ├── src/                  # Componentes React
 │   ├── eslint.config.js      # Configuración ESLint
 │   └── vite.config.js        # Configuración Vite
 ├── main.py                   # Punto de entrada (importa src/api/server.py)
+├── command.py                # Interfaz de línea de comandos para seeding
 ├── pyproject.toml            # Dependencias Python
 ├── docker-compose.yaml       # PostgreSQL + Adminer
 └── AGENTS.md                 # Guía para agentes de IA
@@ -107,22 +114,54 @@ botcachino_monorepo/
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | GET | `/content/` | Listar todo el contenido |
+| GET | `/content/search/` | Búsqueda semántica por texto |
 | GET | `/content/{id}` | Obtener contenido por ID |
 | POST | `/content/` | Crear nuevo contenido |
 | PATCH | `/content/{id}` | Actualizar contenido |
 | DELETE | `/content/{id}` | Eliminar contenido |
+
+#### Búsqueda Semántica
+
+El endpoint `/content/search/` permite realizar búsquedas semánticas usando embeddings vectoriales:
+
+| Parámetro | Tipo | Default | Descripción |
+|------------|------|---------|-------------|
+| `q` | string | requerido | Texto de búsqueda (1-500 chars) |
+| `limit` | int | 5 | Número máximo de resultados (1-100) |
+| `offset` | int | 0 | Desplazamiento para paginación |
+
+**Ejemplo:**
+
+```bash
+# Buscar contenido semánticamente
+curl "http://127.0.0.1:8000/content/search/?q=becas%20para%20estudiantes&limit=3"
+
+# Con offset para paginación
+curl "http://127.0.0.1:8000/content/search/?q=noticias&limit=10&offset=10"
+```
+
+La búsqueda usa distancia coseno (`<=>`) para comparar el embedding de la consulta con los embeddings almacenados, ordenando los resultados por mejor coincidencia.
 
 ### Content Model
 
 El modelo `Content` incluye:
 - **title**: Título (2-200 caracteres)
 - **summary**: Resumen (2-500 caracteres)
-- **category**: Categoría (INFO, NEW)
+- **category**: Categoría (INFO, NEW, SCHOLARSH, ANN)
 - **content**: Cuerpo del contenido
 - **post_date**: Fecha de publicación
 - **embedding**: Vector de 4096 dimensiones para búsqueda semántica
 - **created_at**: Timestamp de creación
 - **updated_at**: Timestamp de actualización
+
+#### Categorías Disponibles
+
+| Categoría | Descripción |
+|-----------|-------------|
+| INFO | Información general del campus |
+| NEW | Novedades institucionales |
+| SCHOLARSH | Becas y movilidad internacional |
+| ANN | Anuncios y actividades universitarias |
 
 ### Ejemplo de uso
 
@@ -156,7 +195,44 @@ curl -X PATCH http://127.0.0.1:8000/content/1 \
 curl -X DELETE http://127.0.0.1:8000/content/1
 ```
 
+## Agregar Datos
+
+### Datos de Ejemplo
+
+Los datos de ejemplo se encuentran en el directorio `data/`. Cada archivo JSON debe tener la siguiente estructura:
+
+```json
+[
+  {
+    "title": "Título del contenido",
+    "content": "Contenido completo...",
+    "summary": "Resumen breve",
+    "post_date": "2025-04-12"
+  }
+]
+```
+
+**Tipos de categorías y archivos:**
+- `scholarship.json` → Categoría: `SCHOLARSH` (Becas y movilidad)
+- `news.json` → Categoría: `ANN` (Noticias e información)
+- `announcements.json` → Categoría: `INFO` (Anuncios y actividades)
+
+Para actualizar los datos, simplemente modifique los archivos JSON y ejecute:
+
+```bash
+python command.py --fill
+```
+
 ## Comandos Útiles
+
+### Seed Data
+
+```bash
+python command.py --fill  # Sembrar la base de datos con datos de ejemplo
+python command.py --fill --dry-run  # Ver qué haría sin ejecutar
+```
+
+Este script carga los archivos JSON del directorio `data/` (scholarship.json, news.json, announcements.json) y los inserta en la base de datos con embeddings generados automáticamente.
 
 ### Python / Backend
 
@@ -219,7 +295,23 @@ Variables de entorno (ver `.env.example`):
 
 ```bash
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino
+NEBIUS_API_KEY=your_nebius_api_key_here
+NEBIUS_EMB_MODEL=Qwen/Qwen3-Embedding-8B
 ```
+
+## Arquitectura del Sistema
+
+### Servicios Principales
+
+- **ContentService**: Maneja operaciones CRUD sobre el modelo `Content`
+- **EmbbedingService**: Genera embeddings para búsqueda semántica usando modelos de langchain (NebiusEmbeddings)
+
+### Flujo de Embeddings
+
+1. Los datos se cargan desde JSON en el directorio `data/`
+2. Se procesan y normalizan (pre_process_text)
+3. Se generan embeddings vectoriales de 4096 dimensiones
+4. Se almacenan junto con el contenido en PostgreSQL con pgvector
 
 ## Recursos Adicionales
 
@@ -247,6 +339,13 @@ docker compose restart
 ```bash
 # Asegurarse de que el entorno está sincronizado
 uv sync
+```
+
+### Error al sembrar datos (401 Authentication)
+
+```bash
+# Verificar que la API Key de Nebius está configurada en .env
+# La API Key debe ser válida y tener acceso al modelo Qwen3-Embedding-8B
 ```
 
 ### Frontend no carga

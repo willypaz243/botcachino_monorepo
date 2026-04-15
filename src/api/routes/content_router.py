@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_content_service
+from src.api.routes.schemas import SearchParams
 from src.api.services.content_service import ContentService
 from src.db.models.content import Content, ContentCreate, ContentUpdate
 
@@ -18,6 +19,16 @@ async def create_content(
 @router.get("/", response_model=list[Content])
 async def read_contents(content_service: ContentService = Depends(get_content_service)):
     return await content_service.get_all_contents()
+
+
+@router.get("/search/", response_model=list[Content])
+async def search_content(
+    q: str = SearchParams.q,
+    limit: int = SearchParams.limit,
+    offset: int = SearchParams.offset,
+    content_service: ContentService = Depends(get_content_service),
+):
+    return await content_service.search(q, limit, offset)
 
 
 @router.get("/{content_id}", response_model=Content)
