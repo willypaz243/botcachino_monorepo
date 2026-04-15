@@ -4,6 +4,7 @@
 
 - Python 3.13 via `uv`. Run `uv sync` to install, `uv run python -m <module>` to execute.
 - Frontend (`web/`) uses Bun. `cd web && bun install` first, then `bun run dev` (http://localhost:5173).
+- LangGraph CLI for agent development: `uv run langgraph dev` (runs on port 2024).
 
 ## Package layout
 
@@ -78,9 +79,11 @@ An AI agent powered by LangGraph that answers questions about the university usi
 - `src/agent/tools.py` — Semantic search tool definition
 - `src/agent/nodes/` — Individual graph nodes (router, search, off_topic, fetch_ids, respond, retry)
 - `src/agent/graph.py` — LangGraph construction and compilation
+- `src/agent/langgraph_app.py` — LangGraph CLI app entry point
 - `src/agent/agent.py` — High-level agent interface with streaming support
 - `src/agent/streaming.py` — SSE formatting utilities
 - `src/api/routes/agent_router.py` — FastAPI endpoint for agent chat
+- `langgraph.json` — LangGraph CLI configuration
 
 ### Configuration
 
@@ -135,6 +138,11 @@ Info messages:
 uv sync
 uv run python -m src.api.server    # run API directly
 uv run python main.py              # run via uvicorn on port 8000
+
+# Agent development with LangGraph CLI
+uv run langgraph dev              # start dev server on port 2024 (http://localhost:2024)
+                                  # requires: docker compose up -d (PostgreSQL running)
+                                  # access Studio: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 
 # Seed database
 python command.py --fill           # populate database from data/

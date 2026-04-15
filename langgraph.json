@@ -1,0 +1,10 @@
+{
+  "$schema": "https://langgra.ph/schema.json",
+  "dependencies": ["."],
+  "graphs": {
+    "university_agent": "./src/agent/langgraph_app.py:graph"
+  },
+  "env": "./.env",
+  "python_version": "3.13",
+  "pip_installer": "uv"
+}
