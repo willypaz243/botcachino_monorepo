@@ -8,6 +8,7 @@
 ## Package layout
 
 - `src/api/server.py` — FastAPI app (the real entry point; `main.py` imports and runs it via uvicorn).
+- `src/api/routes/` — Routers (content_router.py) and query param schemas (schemas.py).
 - `src/api/services/` — Business logic (content_service.py, embedding_service.py).
 - `src/api/dependencies.py` — Dependency injection for services.
 - `src/db/` — SQLModel models and database setup.
@@ -16,6 +17,12 @@
 - `scripts/seed_data.py` — Script to populate database from data files.
 - `command.py` — CLI interface for seeding (python command.py --fill).
 - `web/` — React 19 + Vite frontend (plain JSX, no TypeScript, no tests).
+
+## Semantic Search
+
+- `src/api/services/content_service.py` — `search(query_text, limit, offset)` method performs semantic search using cosine distance (`<=>`).
+- `src/api/routes/content_router.py` — `GET /content/search/` endpoint.
+- `src/api/routes/schemas.py` — `SearchParams` class with `q`, `limit`, `offset` query parameters.
 
 ## Commands
 
