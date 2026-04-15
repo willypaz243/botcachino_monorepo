@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class ModelConfig(BaseModel):
     provider: str = "nebius"
-    name: str = "Qwen/Qwen3-30B-A3B"
+    name: str = "openai/gpt-oss-120b-fast"
     temperature: float = 0.3
     api_key: str | None = None
     base_url: str | None = None
@@ -14,13 +14,16 @@ class ModelConfig(BaseModel):
 
 class RouterModelConfig(BaseModel):
     provider: str = "nebius"
-    name: str = "Qwen/Qwen3-30B-A3B"
+    name: str = "openai/gpt-oss-120b-fast"
     temperature: float = 0.1
     api_key: str | None = None
     base_url: str | None = None
 
 
 class AgentSettings(BaseSettings):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     university_name: str = "la universidad"
     model: ModelConfig = ModelConfig()
     router_model: RouterModelConfig = RouterModelConfig()

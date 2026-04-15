@@ -1,8 +1,6 @@
-from typing import Annotated, TypedDict
 
-from langchain_core.messages import BaseMessage
+from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
-import operator
 
 
 class EvaluationResult(BaseModel):
@@ -14,15 +12,14 @@ class SearchResultSummary(BaseModel):
     summary: str
 
 
-class AgentState(TypedDict):
-    messages: Annotated[list[BaseMessage], operator.add]
+class AgentState(MessagesState, total=False):
     query: str | None
     original_query: str | None
     is_relevant: bool | None
-    search_results: list[dict] | None
+    search_results: list[dict[str, str | int]] | None
     evaluation_result: EvaluationResult | None
     retry_count: int
-    relevant_contents: list[dict] | None
+    relevant_contents: list[dict[str, str | int]] | None
     response: str | None
-    sources: list[dict] | None
+    sources: list[dict[str, str | int | None]] | None
     error: str | None

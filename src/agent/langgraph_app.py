@@ -1,55 +1,50 @@
+from __future__ import annotations
+
+from functools import cache
 from typing import Any
 
+from pydantic import SecretStr
 from langchain_nebius import NebiusEmbeddings
 from langchain_core.runnables import RunnableConfig
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from src.agent.graph import build_agent_graph
-from src.agent.tools import create_search_tool
+from src.agent.services import AgentServices
 from src.api.services.content_service import ContentService
 from src.api.services.embedding_service import EmbbedingService
 from src.config import settings
 
 
-async def _get_content_service() -> ContentService:
+@cache
+def create_content_service() -> ContentService:
     engine = create_async_engine(
-        str(settings.database.url),
+        settings.database.url.get_secret_value(),
         echo=False,
     )
-    async_session = sessionmaker(
+    async_session = async_sessionmaker(
         engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-    session = async_session()
+    session: AsyncSession = async_session()
+
+    api_key_value: SecretStr | None = None
+    if settings.nebius.api_key:
+        api_key_value = settings.nebius.api_key
 
     emb_model = NebiusEmbeddings(
         model=settings.nebius.emb_model,
-        api_key=settings.nebius.api_key.get_secret_value() if settings.nebius.api_key else None,
+        api_key=api_key_value,
     )
     emb_service = EmbbedingService(emb_model)
 
     return ContentService(session, emb_service)
 
 
-async def _build_graph() -> Any:
-    content_service = await _get_content_service()
-    search_tool = await create_search_tool(content_service)
-    return build_agent_graph(content_service, search_tool)
+def make_graph(config: RunnableConfig | None = None) -> Any:
+    content_service = create_content_service()
+    AgentServices.initialize(content_service)
+    return build_agent_graph()
 
 
-_graph_cache: Any | None = None
-
-
-async def get_graph() -> Any:
-    global _graph_cache
-    if _graph_cache is None:
-        _graph_cache = await _build_graph()
-    return _graph_cache
-
-
-def graph(config: RunnableConfig | None = None) -> Any:
-    import asyncio
-
-    return asyncio.run(get_graph())
+graph = make_graph

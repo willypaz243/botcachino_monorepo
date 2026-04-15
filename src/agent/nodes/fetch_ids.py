@@ -1,20 +1,19 @@
+from typing import Any
+
 from src.agent.state import AgentState
+from src.agent.services import get_services
 
 
-def create_fetch_ids_node(content_service):
-    async def fetch_ids_node(state: AgentState) -> dict:
-        evaluation_result = state.get("evaluation_result")
-        if not evaluation_result or not evaluation_result.relevant_ids:
-            return {
-                "relevant_contents": [],
-            }
+async def fetch_ids_node(state: AgentState) -> dict[str, Any]:
+    services = get_services()
+    content_service = services.get_content_service()
 
-        contents = await content_service.get_by_ids(evaluation_result.relevant_ids)
+    evaluation_result = state.get("evaluation_result")
+    if not evaluation_result or not evaluation_result.relevant_ids:
+        return {"relevant_contents": []}
 
-        formatted_contents = [content_service.format_content_for_agent(c) for c in contents]
+    contents = await content_service.get_by_ids(evaluation_result.relevant_ids)
 
-        return {
-            "relevant_contents": formatted_contents,
-        }
+    formatted_contents = [content_service.format_content_for_agent(c) for c in contents]
 
-    return fetch_ids_node
+    return {"relevant_contents": formatted_contents}

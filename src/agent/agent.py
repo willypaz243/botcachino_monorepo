@@ -1,38 +1,36 @@
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 from langchain_core.messages import HumanMessage
-from langgraph.types import StreamMode
+from langchain_core.runnables import RunnableConfig
 
 from src.agent.graph import build_agent_graph
-from src.agent.tools import create_search_tool
+from src.agent.services import AgentServices
 from src.agent.constants import INFO_MESSAGES
+from src.agent.state import AgentState
 from src.api.services.content_service import ContentService
 
 
 class UniversityAgent:
-    def __init__(self, content_service: ContentService):
+    def __init__(self, content_service: ContentService) -> None:
         self.content_service = content_service
-        self._graph = None
-        self._search_tool = None
+        self._graph: Any = None
 
-    def _get_graph(self):
+    def _get_graph(self) -> Any:
         if self._graph is None:
-            self._search_tool = create_search_tool(self.content_service)
-            self._graph = build_agent_graph(
-                self.content_service,
-                self._search_tool,
-            )
+            AgentServices.initialize(self.content_service)
+            self._graph = build_agent_graph()
         return self._graph
 
     async def astream_events(
         self,
         message: str,
         thread_id: str,
-    ) -> AsyncIterator[dict]:
+    ) -> AsyncIterator[dict[str, Any]]:
         graph = self._get_graph()
-        config = {"configurable": {"thread_id": thread_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
-        input_data = {
+        input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
             "retry_count": 0,
         }
@@ -43,7 +41,7 @@ class UniversityAgent:
             async for event in graph.astream(
                 input_data,
                 config,
-                stream_mode=StreamMode.Values,
+                stream_mode="values",
             ):
                 node_name = event.get("_node_name", "")
 
@@ -81,11 +79,11 @@ class UniversityAgent:
 
         yield {"event": "done", "content": ""}
 
-    async def invoke(self, message: str, thread_id: str) -> dict:
+    async def invoke(self, message: str, thread_id: str) -> dict[str, Any]:
         graph = self._get_graph()
-        config = {"configurable": {"thread_id": thread_id}}
+        config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
-        input_data = {
+        input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
             "retry_count": 0,
         }

@@ -1,25 +1,36 @@
+from typing import Any
+
 from langchain_core.messages import SystemMessage
 
 from src.agent.config import agent_settings
 from src.agent.constants import ROUTER_SYSTEM_PROMPT
+from src.agent.services import get_services
 from src.agent.state import AgentState
 
 
-def create_router_node(llm):
-    def router_node(state: AgentState) -> dict:
-        messages = [
-            SystemMessage(
-                content=ROUTER_SYSTEM_PROMPT.format(university=agent_settings.university_name)
-            ),
-            *state["messages"][-3:],
-        ]
+async def router_node(state: AgentState) -> dict[str, Any]:
+    services = get_services()
+    await services.get_search_tool()
 
-        result = llm.with_structured_output({"relevant": bool, "off_topic": bool}).invoke(messages)
+    from langchain_nebius import ChatNebius
 
-        is_relevant = result.get("relevant", False)
+    llm = ChatNebius(
+        model=agent_settings.router_model.name,
+        temperature=agent_settings.router_model.temperature,
+    )
 
-        return {
-            "is_relevant": is_relevant,
-        }
+    messages = [
+        SystemMessage(
+            content=ROUTER_SYSTEM_PROMPT.format(university=agent_settings.university_name)
+        ),
+        *state["messages"][-3:],
+    ]
 
-    return router_node
+    response = llm.invoke(messages)
+    content = str(response.content).lower().strip()
+
+    is_relevant = "relevant" in content and content.count("relevant") >= content.count("off_topic")
+
+    return {
+        "is_relevant": is_relevant,
+    }

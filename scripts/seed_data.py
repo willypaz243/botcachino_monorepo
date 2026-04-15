@@ -73,7 +73,7 @@ async def seed_data():
 
                 # Batch embed all texts in this file
                 print(f"Generating embeddings for {len(texts_to_embed)} items...")
-                embeddings = emb_service.embed_many_texts(texts_to_embed)
+                embeddings = await emb_service.embed_many_texts(texts_to_embed)
 
                 # Insert into database
                 for i, payload in enumerate(content_payloads):

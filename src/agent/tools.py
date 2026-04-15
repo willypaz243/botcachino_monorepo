@@ -1,7 +1,7 @@
 from langchain_core.tools import tool
 
-from src.api.services.content_service import ContentService
 from src.agent.exceptions import SearchError
+from src.api.services.content_service import ContentService
 
 
 async def create_search_tool(content_service: ContentService):
@@ -24,7 +24,7 @@ async def create_search_tool(content_service: ContentService):
 
             results = []
             for content in contents:
-                summary = content_service.format_content_summary(content)
+                summary = await content_service.format_content_summary(content)
                 results.append(f"ID: {summary['id']}\nResumen: {summary['summary']}")
 
             return "\n---\n".join(results)
