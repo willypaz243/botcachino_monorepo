@@ -4,12 +4,19 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import NewsSidebar from "../news/NewsSidebar";
+import { HistorySidebar } from "./Historial";
 import "./ChatPage.css";
 
 export default function ChatPage() {
   const { messages, isLoading, isOnline, sendMessage, clearChat } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
+  const [activeChat, setActiveChat] = useState<string>();
+
+  const handleNewChat = () => {
+    clearChat();
+    setInputValue("");
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -17,6 +24,12 @@ export default function ChatPage() {
 
   return (
     <div className="chat-layout">
+      <HistorySidebar
+        activeChat={activeChat}
+        onChatSelect={(chatId) => setActiveChat(chatId)}
+        onNewChat={handleNewChat}
+      />
+
       <div className="chat-page">
         <header className="chat-header">
           <div className="chat-header-left">
