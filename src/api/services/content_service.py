@@ -78,3 +78,28 @@ class ContentService:
         contents = list(result.scalars().all())
 
         return contents
+
+    async def get_by_ids(self, ids: list[int]) -> list[Content]:
+        if not ids:
+            return []
+
+        query = select(Content).where(Content.id.in_(ids))
+        result = await self.session.execute(query)
+        contents = list(result.scalars().all())
+
+        return contents
+
+    def format_content_for_agent(self, content: Content) -> dict:
+        return {
+            "id": content.id,
+            "title": content.title,
+            "category": content.category.value,
+            "content": content.content,
+            "post_date": content.post_date.isoformat() if content.post_date else None,
+        }
+
+    def format_content_summary(self, content: Content) -> dict:
+        return {
+            "id": content.id,
+            "summary": content.summary,
+        }
