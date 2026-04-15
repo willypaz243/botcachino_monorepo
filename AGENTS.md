@@ -8,8 +8,13 @@
 ## Package layout
 
 - `src/api/server.py` — FastAPI app (the real entry point; `main.py` imports and runs it via uvicorn).
+- `src/api/services/` — Business logic (content_service.py, embedding_service.py).
+- `src/api/dependencies.py` — Dependency injection for services.
 - `src/db/` — SQLModel models and database setup.
 - `src/agent/` — Agent logic (placeholder).
+- `data/` — Seed data files (scholarship.json, news.json, announcements.json).
+- `scripts/seed_data.py` — Script to populate database from data files.
+- `command.py` — CLI interface for seeding (python command.py --fill).
 - `web/` — React 19 + Vite frontend (plain JSX, no TypeScript, no tests).
 
 ## Commands
@@ -19,6 +24,9 @@
 uv sync
 uv run python -m src.api.server    # run API directly
 uv run python main.py              # run via uvicorn on port 8000
+
+# Seed database
+python command.py --fill           # populate database from data/
 
 # Frontend
 cd web && bun install
@@ -44,3 +52,4 @@ docker compose down       # stop services
 - `pyproject.toml` requires `>=3.13`. Do not add deps pinned to older Python.
 - No test framework, no lint tooling, no pre-commit hooks yet.
 - `.venv/` is gitignored but present locally.
+- Content categories: INFO, NEW, SCHOLARSH, ANN.
