@@ -4,7 +4,7 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import NewsSidebar from "../news/NewsSidebar";
-import { HistorySidebar } from "./Historial";
+import { HistorySidebar } from "./Historial/HistorySidebar";
 import "./ChatPage.css";
 
 export default function ChatPage() {

@@ -1,128 +1,13 @@
 import { useState } from 'react';
+import { ChatSession, HistorySidebarProps } from './types';
+import { MOCK_CHATS } from './mockChats';
 import './HistorySidebar.css';
 
-// ============ INTERFACES ============
+// ============ UTILS ============
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
-
-interface ChatSession {
-  id: string;
-  title: string;
-  createdAt: Date;
-  updatedAt: Date;
-  messages: Message[];
-}
-
-// ============ MOCK DATA ============
-
-const generateId = () => Math.random().toString(36).substring(2, 11);
-
-const MOCK_CHATS: ChatSession[] = [
-  {
-    id: generateId(),
-    title: 'Explicación de Cuántica',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    messages: [
-      {
-        id: generateId(),
-        role: 'user',
-        content: '¿Qué es la mecánica cuántica?',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: generateId(),
-        role: 'assistant',
-        content:
-          'La mecánica cuántica es la rama de la física que estudia el comportamiento de la materia y la energía a escalas atómicas y subatómicas...',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      },
-    ],
-  },
-  {
-    id: generateId(),
-    title: 'Receta de Pasta Carbonara',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    messages: [
-      {
-        id: generateId(),
-        role: 'user',
-        content: '¿Cómo hago una pasta carbonara auténtica?',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: generateId(),
-        role: 'assistant',
-        content:
-          'Los ingredientes esenciales son: huevos, queso Pecorino Romano, guanciale (panceta italiana) y pimienta negra...',
-        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      },
-    ],
-  },
-  {
-    id: generateId(),
-    title: 'Debug de Código Python',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    messages: [
-      {
-        id: generateId(),
-        role: 'user',
-        content: 'Tengo un error en mi código Python. ¿Puedes ayudarme?',
-        timestamp: new Date(),
-      },
-      {
-        id: generateId(),
-        role: 'assistant',
-        content:
-          'Claro, muéstrame el código y describre el error que estás recibiendo...',
-        timestamp: new Date(),
-      },
-    ],
-  },
-  {
-    id: generateId(),
-    title: 'Estrategias de Marketing Digital',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    messages: [
-      {
-        id: generateId(),
-        role: 'user',
-        content: '¿Cuáles son las mejores estrategias de marketing digital?',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      },
-    ],
-  },
-  {
-    id: generateId(),
-    title: 'Introducción a React Hooks',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    messages: [
-      {
-        id: generateId(),
-        role: 'user',
-        content: '¿Cómo funcionan los React Hooks?',
-        timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      },
-    ],
-  },
-];
+const generateId = (): string => Math.random().toString(36).substring(2, 11);
 
 // ============ COMPONENT ============
-
-interface HistorySidebarProps {
-  activeChat?: string;
-  onChatSelect?: (chatId: string) => void;
-  onNewChat?: () => void;
-}
 
 export function HistorySidebar({
   activeChat,
@@ -366,5 +251,3 @@ ${date.getMonth() + 1}/${date.getFullYear()}`;
     </aside>
   );
 }
-
-export type { ChatSession, Message };
