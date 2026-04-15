@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_content_service
-from src.api.routes.schemas import SearchParams
+from src.api.routes.schemas import SearchParams, PaginationParams
 from src.api.services.content_service import ContentService
-from src.db.models.content import Content, ContentCreate, ContentUpdate
+from src.db.models.content import ContentCreate, ContentUpdate, ContentRead
 
 router = APIRouter(prefix="/content", tags=["Content"])
 
 
-@router.post("/", response_model=Content, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ContentRead, status_code=status.HTTP_201_CREATED)
 async def create_content(
     content_in: ContentCreate,
     content_service: ContentService = Depends(get_content_service),
@@ -16,12 +16,16 @@ async def create_content(
     return await content_service.create_content(content_in)
 
 
-@router.get("/", response_model=list[Content])
-async def read_contents(content_service: ContentService = Depends(get_content_service)):
-    return await content_service.get_all_contents()
+@router.get("/", response_model=list[ContentRead])
+async def read_contents(
+    limit: int = PaginationParams.limit,
+    offset: int = PaginationParams.offset,
+    content_service: ContentService = Depends(get_content_service)
+):
+    return await content_service.get_all_contents(limit=limit, offset=offset)
 
 
-@router.get("/search/", response_model=list[Content])
+@router.get("/search/", response_model=list[ContentRead])
 async def search_content(
     q: str = SearchParams.q,
     limit: int = SearchParams.limit,
@@ -31,7 +35,7 @@ async def search_content(
     return await content_service.search(q, limit, offset)
 
 
-@router.get("/{content_id}", response_model=Content)
+@router.get("/{content_id}", response_model=ContentRead)
 async def read_content(
     content_id: int,
     content_service: ContentService = Depends(get_content_service),
@@ -42,7 +46,7 @@ async def read_content(
     return content
 
 
-@router.patch("/{content_id}", response_model=Content)
+@router.patch("/{content_id}", response_model=ContentRead)
 async def update_content(
     content_id: int,
     content_in: ContentUpdate,

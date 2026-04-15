@@ -1,6 +1,25 @@
 from fastapi import Query
 
 
+class PaginationParams:
+    limit = Query(
+        default=50,
+        title="Result limit",
+        description="Maximum number of results to return.",
+        ge=1,
+        le=100,
+        examples=[10, 50, 100],
+    )
+
+    offset = Query(
+        default=0,
+        title="Offset",
+        description="Number of results to skip for pagination.",
+        ge=0,
+        examples=[0, 10, 50],
+    )
+
+
 class SearchParams:
     q = Query(
         ...,
@@ -20,10 +39,4 @@ class SearchParams:
         examples=[5, 10, 20],
     )
 
-    offset = Query(
-        default=0,
-        title="Offset",
-        description="Number of results to skip for pagination.",
-        ge=0,
-        examples=[0, 10, 20],
-    )
+    offset = PaginationParams.offset

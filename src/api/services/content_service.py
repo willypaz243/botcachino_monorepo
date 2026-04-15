@@ -35,8 +35,9 @@ class ContentService:
         await self.session.refresh(new_content)
         return new_content
 
-    async def get_all_contents(self) -> list[Content]:
-        result = await self.session.execute(select(Content))
+    async def get_all_contents(self, limit: int = 50, offset: int = 0) -> list[Content]:
+        query = select(Content).limit(limit).offset(offset)
+        result = await self.session.execute(query)
         return list(result.scalars().all())
 
     async def get_content_by_id(self, content_int: int) -> Content | None:
@@ -48,8 +49,18 @@ class ContentService:
             return None
 
         data = content_in.model_dump(exclude_unset=True)
+        text_changed = any(key in data for key in ("title", "summary", "content"))
+
         for key, value in data.items():
             setattr(content, key, value)
+
+        if text_changed:
+            text_content = (
+                f"#{self.emb_service.pre_process_text(content.title)}\n\n"
+                f"## Summary\n{self.emb_service.pre_process_text(content.summary)}\n\n"
+                f"## Content\n{self.emb_service.pre_process_text(content.content)}"
+            )
+            content.embedding = await self.emb_service.embed_text(text_content)
 
         self.session.add(content)
         await self.session.commit()
