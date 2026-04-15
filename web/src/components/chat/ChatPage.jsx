@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useChat } from '../../hooks/useChat';
+import NewsCarousel from '../news/NewsCarousel';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
@@ -49,6 +50,8 @@ export default function ChatPage() {
           </svg>
         </button>
       </header>
+
+      <NewsCarousel />
 
       <main className="chat-messages" id="chat-messages" role="log" aria-live="polite">
         <div className="chat-messages-inner">
