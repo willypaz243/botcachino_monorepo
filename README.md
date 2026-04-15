@@ -78,6 +78,7 @@ botcachino_monorepo/
 │   ├── api/                  # Endpoints y lógica de API
 │   │   ├── routes/           # Routers FastAPI
 │   │   │   ├── content_router.py
+│   │   │   ├── schemas.py
 │   │   │   └── __init__.py
 │   │   ├── services/         # Lógica de negocio
 │   │   │   ├── content_service.py
@@ -113,10 +114,33 @@ botcachino_monorepo/
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | GET | `/content/` | Listar todo el contenido |
+| GET | `/content/search/` | Búsqueda semántica por texto |
 | GET | `/content/{id}` | Obtener contenido por ID |
 | POST | `/content/` | Crear nuevo contenido |
 | PATCH | `/content/{id}` | Actualizar contenido |
 | DELETE | `/content/{id}` | Eliminar contenido |
+
+#### Búsqueda Semántica
+
+El endpoint `/content/search/` permite realizar búsquedas semánticas usando embeddings vectoriales:
+
+| Parámetro | Tipo | Default | Descripción |
+|------------|------|---------|-------------|
+| `q` | string | requerido | Texto de búsqueda (1-500 chars) |
+| `limit` | int | 5 | Número máximo de resultados (1-100) |
+| `offset` | int | 0 | Desplazamiento para paginación |
+
+**Ejemplo:**
+
+```bash
+# Buscar contenido semánticamente
+curl "http://127.0.0.1:8000/content/search/?q=becas%20para%20estudiantes&limit=3"
+
+# Con offset para paginación
+curl "http://127.0.0.1:8000/content/search/?q=noticias&limit=10&offset=10"
+```
+
+La búsqueda usa distancia coseno (`<=>`) para comparar el embedding de la consulta con los embeddings almacenados, ordenando los resultados por mejor coincidencia.
 
 ### Content Model
 
