@@ -1,5 +1,6 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import col
 
 from src.db.models.content import Content, ContentCreate, ContentUpdate
 
@@ -62,3 +63,18 @@ class ContentService:
         await self.session.delete(content)
         await self.session.commit()
         return True
+
+    async def search(self, query_text: str, limit: int = 5, offset: int = 0) -> list[Content]:
+        normalized_text = self.emb_service.pre_process_text(query_text)
+        query_embedding = self.emb_service.embed_text(normalized_text)
+
+        query = (
+            select(Content)
+            .order_by(col(Content.embedding).op("<=>")(query_embedding))
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self.session.execute(query)
+        contents = list(result.scalars().all())
+
+        return contents
