@@ -28,7 +28,7 @@ class ContentService:
         )
 
         new_content = Content(**content_in.model_dump())
-        new_content.embedding = self.emb_service.embed_text(text_content)
+        new_content.embedding = await self.emb_service.embed_text(text_content)
 
         self.session.add(new_content)
         await self.session.commit()
@@ -65,8 +65,11 @@ class ContentService:
         return True
 
     async def search(self, query_text: str, limit: int = 5, offset: int = 0) -> list[Content]:
+        print("Normalizing text ...")
         normalized_text = self.emb_service.pre_process_text(query_text)
-        query_embedding = self.emb_service.embed_text(normalized_text)
+        print("Query embedding ...")
+        query_embedding = await self.emb_service.embed_text(normalized_text)
+        print("Query embedding done.")
 
         query = (
             select(Content)
@@ -78,3 +81,28 @@ class ContentService:
         contents = list(result.scalars().all())
 
         return contents
+
+    async def get_by_ids(self, ids: list[int]) -> list[Content]:
+        if not ids:
+            return []
+
+        query = select(Content).where(col(Content.id).in_(ids))
+        result = await self.session.execute(query)
+        contents = list(result.scalars().all())
+
+        return contents
+
+    def format_content_for_agent(self, content: Content) -> dict:
+        return {
+            "id": content.id,
+            "title": content.title,
+            "category": content.category.value,
+            "content": content.content,
+            "post_date": content.post_date.isoformat() if content.post_date else None,
+        }
+
+    async def format_content_summary(self, content: Content) -> dict:
+        return {
+            "id": content.id,
+            "summary": content.summary,
+        }

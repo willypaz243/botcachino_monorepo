@@ -11,11 +11,11 @@ class EmbbedingService:
     def emb_model(self) -> Embeddings:
         return self.__emb_model
 
-    def embed_text(self, text: str) -> list[float]:
-        return self.emb_model.embed_query(text)
+    async def embed_text(self, text: str) -> list[float]:
+        return await self.emb_model.aembed_query(text)
 
-    def embed_many_texts(self, texts: list[str]) -> list[list[float]]:
-        return self.emb_model.embed_documents(texts)
+    async def embed_many_texts(self, texts: list[str]) -> list[list[float]]:
+        return await self.emb_model.aembed_documents(texts)
 
     def pre_process_text(self, text: str) -> str:
         text = text.lower()

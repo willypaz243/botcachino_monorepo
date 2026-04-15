@@ -13,7 +13,7 @@ from src.db.models.content import Category, Content, ContentCreate, ContentUpdat
 def mock_emb_service():
     emb_service = MagicMock(spec=EmbbedingService)
     emb_service.pre_process_text = MagicMock(side_effect=lambda x: x.lower())
-    emb_service.embed_text = MagicMock(return_value=[0.1] * 4096)
+    emb_service.embed_text = AsyncMock(return_value=[0.1] * 4096)
     return emb_service
 
 
