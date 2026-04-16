@@ -1,0 +1,138 @@
+.news-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #0f0f13;
+  border-left: 1px solid #2a2a3a;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition:
+    width 0.25s ease,
+    min-width 0.25s ease;
+  position: relative;
+}
+
+.news-sidebar--collapsed {
+  width: 48px;
+  min-width: 48px;
+  overflow: hidden;
+}
+
+.news-sidebar-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #1e1e2e;
+  border: 1px solid #2a2a3a;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  z-index: 10;
+}
+
+.news-sidebar--collapsed .news-sidebar-toggle {
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.news-sidebar-toggle:hover {
+  background: #2a2a3e;
+}
+
+.news-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  padding-right: 48px;
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.news-sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.3px;
+}
+
+.news-sidebar-badge {
+  background: #6c63ff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.news-sidebar-list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.news-sidebar-item {
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+  border: 1px solid #2a2a3a;
+  background: #141420;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.news-sidebar-item:hover {
+  background: #1e1e2e;
+  border-color: #6c63ff88;
+  transform: translateX(-2px);
+}
+
+.news-sidebar-item:hover .news-sidebar-cta {
+  color: #6c63ff;
+}
+
+.news-sidebar-item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.news-sidebar-emoji {
+  font-size: 14px;
+}
+
+.news-sidebar-categoria {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6c63ff;
+  letter-spacing: 0.8px;
+}
+
+.news-sidebar-titulo {
+  margin: 0;
+  font-size: 12px;
+  color: #ccc;
+  line-height: 1.5;
+}
+
+.news-sidebar-cta {
+  font-size: 11px;
+  color: #555;
+  margin-top: 2px;
+  transition: color 0.15s;
+}
