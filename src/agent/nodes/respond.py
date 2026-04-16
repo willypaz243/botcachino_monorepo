@@ -2,17 +2,18 @@ from typing import Any
 
 from langchain_core.messages import SystemMessage
 
-from src.agent.config import agent_settings
 from src.agent.constants import INFO_MESSAGES, RESPOND_SYSTEM_PROMPT
 from src.agent.state import AgentState
+from src.config import settings
 
 
 def respond_node(state: AgentState) -> dict[str, Any]:
     from langchain_nebius import ChatNebius
 
     llm = ChatNebius(
-        model=agent_settings.model.name,
-        temperature=agent_settings.model.temperature,
+        model=settings.agent.model.name,
+        api_key=settings.agent.router_model.api_key,
+        temperature=settings.agent.model.temperature,
     )
 
     relevant_contents = state.get("relevant_contents", [])
@@ -23,8 +24,8 @@ def respond_node(state: AgentState) -> dict[str, Any]:
             "sources": [],
         }
 
-    context_parts = []
-    sources = []
+    context_parts: list[str] = []
+    sources: list[dict[str, Any]] = []
 
     for content in relevant_contents:
         context_parts.append(
@@ -47,17 +48,20 @@ def respond_node(state: AgentState) -> dict[str, Any]:
     messages = [
         SystemMessage(
             content=RESPOND_SYSTEM_PROMPT.format(
-                university=agent_settings.university_name,
-                max_tokens=agent_settings.max_response_tokens,
+                university=settings.agent.university_name,
+                max_tokens=settings.agent.max_response_tokens,
                 context=context,
             )
         ),
         *state["messages"],
     ]
 
-    response = llm.invoke(messages)
+    full_response = ""
+    for chunk in llm.stream(messages):
+        if chunk.content and isinstance(chunk.content, str):
+            full_response += chunk.content
 
     return {
-        "response": response.content,
+        "response": full_response,
         "sources": sources,
     }

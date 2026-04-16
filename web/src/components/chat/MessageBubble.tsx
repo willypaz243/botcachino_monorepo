@@ -1,10 +1,12 @@
+import ReactMarkdown from 'react-markdown';
 import './MessageBubble.css';
 
 export interface Message {
   id: string;
-  role: 'user' | 'bot';
+  role: 'user' | 'bot' | 'info';
   content: string;
   timestamp: Date;
+  done?: boolean;
 }
 
 interface MessageBubbleProps {
@@ -17,12 +19,29 @@ function formatTime(date: Date): string {
 
 export default function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user';
+  const isInfo = message.role === 'info';
+
+  if (isInfo) {
+    return (
+      <div className="message-row message-row--info">
+        <div className="message-bubble message-bubble--info">
+          <p className="message-text message-text--info">{message.content}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`message-row message-row--${isUser ? 'user' : 'bot'}`}>
       {!isUser && <div className="message-avatar">☕️</div>}
       <div className={`message-bubble message-bubble--${isUser ? 'user' : 'bot'}`}>
-        <p className="message-text" dangerouslySetInnerHTML={{ __html: message.content }} />
+        {isUser ? (
+          <p className="message-text">{message.content}</p>
+        ) : (
+          <ReactMarkdown components={{
+            p: ({ children }) => <p className="message-text">{children}</p>,
+          }}>{message.content}</ReactMarkdown>
+        )}
         <span className="message-time">{formatTime(message.timestamp)}</span>
       </div>
       {isUser && <div className="message-avatar">👤</div>}

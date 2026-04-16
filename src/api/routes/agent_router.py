@@ -1,12 +1,18 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from src.agent import UniversityAgent
+from src.agent.streaming import format_sse
 from src.api.dependencies import get_content_service
 from src.api.services.content_service import ContentService
-from src.agent.streaming import format_sse
 
 router = APIRouter(prefix="/agent", tags=["agent"])
+
+
+class ChatRequest(BaseModel):
+    message: str
+    thread_id: str
 
 
 async def get_agent(
@@ -17,20 +23,7 @@ async def get_agent(
 
 @router.post("/chat")
 async def chat_with_agent(
-    message: str = Query(
-        ...,
-        title="Message",
-        description="The message to send to the agent",
-        min_length=1,
-        max_length=2000,
-    ),
-    thread_id: str = Query(
-        ...,
-        title="Thread ID",
-        description="Unique identifier for the conversation thread",
-        min_length=1,
-        max_length=100,
-    ),
+    request: ChatRequest,
     agent: UniversityAgent = Depends(get_agent),
 ) -> StreamingResponse:
     """Chat with the university information agent.
@@ -42,8 +35,8 @@ async def chat_with_agent(
     async def event_generator():
         try:
             async for event in agent.astream_events(
-                message=message,
-                thread_id=thread_id,
+                message=request.message,
+                thread_id=request.thread_id,
             ):
                 event_type = event.get("event", "info")
                 content = event.get("content", "")

@@ -1,16 +1,17 @@
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
-from src.agent.state import AgentState
-from src.agent.nodes.router import router_node
-from src.agent.nodes.search import search_node
-from src.agent.nodes.off_topic import off_topic_node
 from src.agent.nodes.fetch_ids import fetch_ids_node
+from src.agent.nodes.off_topic import off_topic_node
 from src.agent.nodes.respond import respond_node
 from src.agent.nodes.retry import retry_node, should_retry
+from src.agent.nodes.router import router_node
+from src.agent.nodes.search import search_node
+from src.agent.state import AgentState
 
 
-def build_agent_graph():
+def build_agent_graph() -> CompiledStateGraph[AgentState, None, AgentState, AgentState]:
     checkpointer = InMemorySaver()
 
     def route_decision(state: AgentState) -> str:
