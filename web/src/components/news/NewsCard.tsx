@@ -1,6 +1,12 @@
+import type { NewsItem } from '../../hooks/useNews';
 import './NewsCard.css';
 
-function formatDate(isoString) {
+interface NewsCardProps {
+  item: NewsItem;
+  isActive: boolean;
+}
+
+function formatDate(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleDateString('es-BO', {
     day: 'numeric',
@@ -9,7 +15,7 @@ function formatDate(isoString) {
   });
 }
 
-export default function NewsCard({ item, isActive }) {
+export default function NewsCard({ item, isActive }: NewsCardProps) {
   return (
     <article
       className={`news-card ${isActive ? 'news-card--active' : ''}`}

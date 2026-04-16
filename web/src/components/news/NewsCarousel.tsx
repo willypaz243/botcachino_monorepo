@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type KeyboardEvent } from 'react';
 import { useNews } from '../../hooks/useNews';
 import NewsCard from './NewsCard';
 import './NewsCarousel.css';
@@ -9,11 +9,11 @@ export default function NewsCarousel() {
   const { news, isLoading, error } = useNews();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const total = news.length;
 
-  const goTo = useCallback((index) => {
+  const goTo = useCallback((index: number) => {
     setActiveIndex((index + total) % total);
   }, [total]);
 
@@ -32,10 +32,12 @@ export default function NewsCarousel() {
       setActiveIndex((prev) => (prev + 1) % total);
     }, AUTOPLAY_INTERVAL);
 
-    return () => clearInterval(intervalRef.current);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isPaused, total]);
 
-  function handleKeyDown(e) {
+  function handleKeyDown(e: KeyboardEvent<HTMLElement>) {
     if (e.key === 'ArrowLeft') goPrev();
     if (e.key === 'ArrowRight') goNext();
   }

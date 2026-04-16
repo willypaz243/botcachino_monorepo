@@ -4,6 +4,7 @@ import MessageBubble from "./MessageBubble";
 import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import NewsSidebar from "../news/NewsSidebar";
+import NewsCarousel from "../news/NewsCarousel";
 import "./ChatPage.css";
 
 export default function ChatPage() {
@@ -63,6 +64,8 @@ export default function ChatPage() {
             </svg>
           </button>
         </header>
+
+        <NewsCarousel />
 
         <main
           className="chat-messages"
