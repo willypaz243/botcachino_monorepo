@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./NewsSidebar.css";
+import { Newspaper, X } from "lucide-react";
 
 interface Noticia {
   id: number;
@@ -59,46 +60,73 @@ const MOCK_NOTICIAS: Noticia[] = [
 ];
 
 export default function NewsSidebar({ onSelect }: NewsSidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
-    <aside
-      className={`news-sidebar ${collapsed ? "news-sidebar--collapsed" : ""}`}
-    >
-      <button
-        className="news-sidebar-toggle"
-        onClick={() => setCollapsed(!collapsed)}
-        title={collapsed ? "Expandir noticias" : "Colapsar noticias"}
-      >
-        {collapsed ? "📰" : "✕"}
-      </button>
+    <>
+      {collapsed && (
+        <button
+          className="news-sidebar-toggle"
+          onClick={() => setCollapsed(false)}
+          title="Ver sugerencias"
+        >
+          <Newspaper size={18} />
+        </button>
+      )}
 
       {!collapsed && (
-        <>
-          <div className="news-sidebar-header">
-            <span className="news-sidebar-title">📰 Noticias</span>
-            <span className="news-sidebar-badge">{MOCK_NOTICIAS.length}</span>
-          </div>
-          <ul className="news-sidebar-list">
-            {MOCK_NOTICIAS.map((noticia) => (
-              <li
-                key={noticia.id}
-                className="news-sidebar-item"
-                onClick={() => onSelect(noticia.titulo)}
-              >
-                <div className="news-sidebar-item-top">
-                  <span className="news-sidebar-emoji">{noticia.emoji}</span>
-                  <span className="news-sidebar-categoria">
-                    {noticia.categoria}
-                  </span>
-                </div>
-                <p className="news-sidebar-titulo">{noticia.titulo}</p>
-                <span className="news-sidebar-cta">Preguntar →</span>
-              </li>
-            ))}
-          </ul>
-        </>
+        <div
+          className="news-sidebar-overlay"
+          onClick={() => setCollapsed(true)}
+        />
       )}
-    </aside>
+
+      <aside
+        className={`news-sidebar ${collapsed ? "news-sidebar--collapsed" : ""}`}
+      >
+        {!collapsed && (
+          <>
+            <div className="news-sidebar-header">
+              <button
+                className="news-sidebar-close"
+                onClick={() => setCollapsed(true)}
+                aria-label="Cerrar"
+              >
+                <X size={18} />
+              </button>
+              <div className="news-sidebar-header-center">
+                <Newspaper size={16} />
+                <span className="news-sidebar-title">Noticias</span>
+              </div>
+
+              <span className="news-sidebar-badge">{MOCK_NOTICIAS.length}</span>
+            </div>
+
+            <ul className="news-sidebar-list">
+              {MOCK_NOTICIAS.map((noticia) => (
+                <li
+                  key={noticia.id}
+                  className="news-sidebar-item"
+                  onClick={() => {
+                    onSelect(noticia.titulo);
+                    setCollapsed(true);
+                  }}
+                >
+                  <div className="news-sidebar-item-top">
+                    <span className="news-sidebar-emoji">{noticia.emoji}</span>
+                    <span className="news-sidebar-categoria">
+                      {noticia.categoria}
+                    </span>
+                  </div>
+
+                  <p className="news-sidebar-titulo">{noticia.titulo}</p>
+                  <span className="news-sidebar-cta">Preguntar →</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </aside>
+    </>
   );
 }

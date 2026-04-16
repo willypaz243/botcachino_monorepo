@@ -10,7 +10,7 @@ export default function ChatPage() {
   const { messages, isLoading, isOnline, sendMessage, clearChat } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
-
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
@@ -84,10 +84,15 @@ export default function ChatPage() {
           disabled={isLoading}
           value={inputValue}
           onChange={setInputValue}
+          inputRef={inputRef}
         />
       </div>
-
-      <NewsSidebar onSelect={(texto) => setInputValue(texto)} />
+      <NewsSidebar
+        onSelect={(texto) => {
+          setInputValue(texto);
+          inputRef.current?.focus();
+        }}
+      />{" "}
     </div>
   );
 }
