@@ -11,6 +11,7 @@ Sistema de gestión de noticias e información con interfaz web, construido con 
 | **Frontend** | React 19, Vite, Bun |
 | **ORM** | SQLModel + SQLAlchemy async |
 | **Gestor de Paquetes** | uv (Python), Bun (frontend) |
+| **Agente AI** | LangGraph (University Information Agent) |
 
 ## Requisitos Previos
 
@@ -78,6 +79,7 @@ botcachino_monorepo/
 │   ├── api/                  # Endpoints y lógica de API
 │   │   ├── routes/           # Routers FastAPI
 │   │   │   ├── content_router.py
+│   │   │   ├── agent_router.py
 │   │   │   ├── schemas.py
 │   │   │   └── __init__.py
 │   │   ├── services/         # Lógica de negocio
@@ -87,9 +89,18 @@ botcachino_monorepo/
 │   │   └── server.py         # App FastAPI
 │   ├── db/                   # Configuración de base de datos
 │   │   ├── database.py       # Engine async y session maker
-│   │   ├── models/           # Modelos SQLModel
-│   │   │   └── content.py
-│   └── agent/                # Lógica de agente (placeholder)
+│   │   └── models/           # Modelos SQLModel
+│   └── agent/                # University Information Agent (LangGraph)
+│       ├── config.py         # Configuración del agente
+│       ├── constants.py      # System prompts y mensajes
+│       ├── state.py          # LangGraph state schema
+│       ├── exceptions.py     # Excepciones personalizadas
+│       ├── tools.py          # Semantic search tool
+│       ├── nodes/            # Graph nodes (router, search, respond, etc.)
+│       ├── graph.py          # LangGraph construction
+│       ├── langgraph_app.py  # LangGraph CLI app entry
+│       ├── agent.py          # High-level agent interface
+│       └── streaming.py      # SSE formatting utilities
 ├── data/                     # Datos de ejemplo para seeding
 │   ├── scholarship.json      # Becas y movilidad internacional
 │   ├── news.json             # Noticias e información del campus
@@ -101,7 +112,7 @@ botcachino_monorepo/
 │   ├── eslint.config.js      # Configuración ESLint
 │   └── vite.config.js        # Configuración Vite
 ├── main.py                   # Punto de entrada (importa src/api/server.py)
-├── command.py                # Interfaz de línea de comandos para seeding
+├── commands.py               # CLI interface para seeding
 ├── pyproject.toml            # Dependencias Python
 ├── docker-compose.yaml       # PostgreSQL + Adminer
 └── AGENTS.md                 # Guía para agentes de IA
@@ -163,37 +174,28 @@ El modelo `Content` incluye:
 | SCHOLARSH | Becas y movilidad internacional |
 | ANN | Anuncios y actividades universitarias |
 
-### Ejemplo de uso
+### University Information Agent
 
-```bash
-# Crear contenido
-curl -X POST http://127.0.0.1:8000/content/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Título del contenido",
-    "summary": "Resumen breve",
-    "category": "INFO",
-    "content": "Contenido completo del artículo...",
-    "post_date": "2026-01-01T10:00:00"
-  }'
+El agente utiliza LangGraph para responder preguntas sobre la universidad usando búsqueda semántica.
 
-# Listar contenido
-curl http://127.0.0.1:8000/content/
+**POST /api/agent/chat**
 
-# Obtener por ID
-curl http://127.0.0.1:8000/content/1
+Query parameters:
+- `message` (required): User message (1-2000 chars)
+- `thread_id` (required): Conversation thread ID (1-100 chars)
 
-# Actualizar
-curl -X PATCH http://127.0.0.1:8000/content/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Título actualizado",
-    "summary": "Resumen actualizado"
-  }'
+Response: Server-Sent Events (SSE) stream
 
-# Eliminar
-curl -X DELETE http://127.0.0.1:8000/content/1
+Event format:
+```json
+{
+  "content": "string",
+  "type": "text" | "error" | "info",
+  "done": boolean
+}
 ```
+
+El agente clasifica consultas, realiza búsqueda semántica, evalúa resultados, y genera respuestas con streaming.
 
 ## Agregar Datos
 
@@ -220,7 +222,7 @@ Los datos de ejemplo se encuentran en el directorio `data/`. Cada archivo JSON d
 Para actualizar los datos, simplemente modifique los archivos JSON y ejecute:
 
 ```bash
-python command.py --fill
+python commands.py --fill
 ```
 
 ## Comandos Útiles
@@ -228,8 +230,8 @@ python command.py --fill
 ### Seed Data
 
 ```bash
-python command.py --fill  # Sembrar la base de datos con datos de ejemplo
-python command.py --fill --dry-run  # Ver qué haría sin ejecutar
+python commands.py --fill  # Sembrar la base de datos con datos de ejemplo
+python commands.py --fill --dry-run  # Ver qué haría sin ejecutar
 ```
 
 Este script carga los archivos JSON del directorio `data/` (scholarship.json, news.json, announcements.json) y los inserta en la base de datos con embeddings generados automáticamente.
@@ -243,6 +245,10 @@ uv run python -m src.api.server    # Ejecutar módulo específico
 
 # Con hot-reload (desarrollo)
 uv run uvicorn src.api.server:app --reload --port 8000
+
+# LangGraph Agent Development
+uv run langgraph dev              # start dev server on port 2024
+                                   # access Studio: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 ```
 
 ### Frontend
@@ -273,6 +279,7 @@ docker compose exec db psql -U postgres -d botcachino  # CLI de PostgreSQL
 - **Modelos**: Usar SQLModel con las variantes `*Base`, `*Create`, `*Update`, `*Read`
 - **Timestamps**: Usar `datetime.now(UTC)` para mantener consistencia con PostgreSQL
 - **Sesiones**: Inyectar vía `Depends()` en los routers
+- **Python 3.13**: `pyproject.toml` requiere `>=3.13`. No agregar deps con Python versiones anteriores.
 
 ### Frontend
 
@@ -294,9 +301,20 @@ git commit -m "docs: update README"
 Variables de entorno (ver `.env.example`):
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino
-NEBIUS_API_KEY=your_nebius_api_key_here
-NEBIUS_EMB_MODEL=Qwen/Qwen3-Embedding-8B
+# Agent Configuration
+AGENT__UNIVERSITY_NAME="Universidad Mayor de San Simon (UMSS)"
+AGENT_MODEL__NAME="openai/gpt-oss-120b-fast"
+AGENT_MODEL__API_KEY="[model-api-key]"
+AGENT_ROUTER_MODEL__NAME="openai/gpt-oss-120b-fast"
+AGENT_ROUTER_MODEL__API_KEY="[model-api-key]"
+AGENT_MAX_SEARCH_RETRIES=5
+AGENT_MAX_RESPONSE_TOKENS=1024
+
+# IA Services
+NEBIUS__API_KEY="[model-api-key]"
+
+# Database
+DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino"
 ```
 
 ## Arquitectura del Sistema
@@ -305,6 +323,7 @@ NEBIUS_EMB_MODEL=Qwen/Qwen3-Embedding-8B
 
 - **ContentService**: Maneja operaciones CRUD sobre el modelo `Content`
 - **EmbbedingService**: Genera embeddings para búsqueda semántica usando modelos de langchain (NebiusEmbeddings)
+- **UniversityAgent**: Agente LangGraph que responde preguntas sobre la universidad
 
 ### Flujo de Embeddings
 
@@ -312,6 +331,15 @@ NEBIUS_EMB_MODEL=Qwen/Qwen3-Embedding-8B
 2. Se procesan y normalizan (pre_process_text)
 3. Se generan embeddings vectoriales de 4096 dimensiones
 4. Se almacenan junto con el contenido en PostgreSQL con pgvector
+
+### Agent Architecture
+
+El agente utiliza LangGraph con los siguientes nodes:
+- **Router**: Clasifica consultas como relevantes o off-topic
+- **Search**: Realiza búsqueda semántica
+- **Fetch IDs**: Recupera el contenido por IDs
+- **Respond**: Genera la respuesta final
+- **Retry**: Reintenta la búsqueda si no se encuentran resultados relevantes
 
 ## Recursos Adicionales
 
@@ -321,6 +349,7 @@ NEBIUS_EMB_MODEL=Qwen/Qwen3-Embedding-8B
 - [pgvector](https://github.com/pgvector/pgvector) (búsqueda vectorial)
 - [React Docs](https://react.dev/)
 - [Vite](https://vitejs.dev/)
+- [LangGraph](https://langchain-ai.github.io/langgraph/) (agente AI)
 
 ## Troubleshooting
 
@@ -354,4 +383,14 @@ uv sync
 cd web
 rm -rf node_modules bun.lock
 bun install
+```
+
+### Agente no responde correctamente
+
+```bash
+# Verificar que el servidor LangGraph está corriendo
+uv run langgraph dev
+
+# Revisar los logs y verificar la configuración de variables de entorno
+# Consultar AGENTS.md para más detalles sobre la configuración
 ```

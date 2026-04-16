@@ -16,7 +16,7 @@
 - `src/agent/` — University information agent implementation.
 - `data/` — Seed data files (scholarship.json, news.json, announcements.json).
 - `scripts/seed_data.py` — Script to populate database from data files.
-- `command.py` — CLI interface for seeding (python command.py --fill).
+- `commands.py` — CLI interface for seeding (python commands.py --fill).
 - `web/` — React 19 + Vite frontend (plain JSX, no TypeScript, no tests).
 
 ## Semantic Search
@@ -43,30 +43,30 @@ An AI agent powered by LangGraph that answers questions about the university usi
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     POST /api/agent/chat                         │
-│                  (StreamingResponse via SSE)                     │
+│                     POST /api/agent/chat                        │
+│                  (StreamingResponse via SSE)                    │
 └─────────────────────────────────────────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      LANGGRAPH AGENT                             │
-│                                                                   │
-│  ┌──────────────┐    (off-topic)                                 │
+│                      LANGGRAPH AGENT                            │
+│                                                                 │
+│  ┌──────────────┐    (off-topic)                                │
 │  │   ROUTER     │──────────────────────────────────────────────▶┤ OFF-TOPIC
-│  │  (analizar)  │                                                │
-│  └──────────────┘                                                │
-│         │                                                        │
-│    (relevant)                                                    │
-│         │                                                        │
-│         ▼                                                        │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐      │
-│  │   SEARCH    │───▶│  FETCH_IDS   │───▶│   RESPOND    │      │
-│  │  (evaluar)   │    │ (recuperar) │    │  (generar)   │      │
-│  └──────────────┘    └──────────────┘    └──────────────┘      │
-│         │                                    ▲                   │
-│         │ (reintentar)                       │                   │
-│         └────────────────────────────────────┘                   │
-│                      (hasta 5 intentos)                          │
+│  │  (analizar)  │                                               │
+│  └──────────────┘                                               │
+│         │                                                       │
+│    (relevant)                                                   │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
+│  │   SEARCH     │───▶│ FETCH_IDS    │───▶│   RESPOND    │       │
+│  │  (evaluar)   │    │ (recuperar)  │    │  (generar)   │       │
+│  └──────────────┘    └──────────────┘    └──────────────┘       │
+│         │                                    ▲                  │
+│         │ (reintentar)                       │                  │
+│         └────────────────────────────────────┘                  │
+│                      (hasta 5 intentos)                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
