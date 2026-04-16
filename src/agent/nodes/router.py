@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from langchain_core.messages import SystemMessage
@@ -28,10 +29,18 @@ async def router_node(state: AgentState) -> dict[str, Any]:
     ]
 
     response = llm.invoke(messages)
-    content = str(response.content).lower().strip()
+    content = str(response.content).strip()
 
-    is_relevant = "relevant" in content and content.count("relevant") >= content.count("off_topic")
+    try:
+        result = json.loads(content)
+        classification = result.get("classification", "off_topic")
+        reason = result.get("reason")
+        is_relevant = classification == "relevant"
+    except (json.JSONDecodeError, KeyError):
+        is_relevant = "relevant" in content.lower()
+        reason = "not_related" if not is_relevant else None
 
     return {
         "is_relevant": is_relevant,
+        "off_topic_reason": reason,
     }
