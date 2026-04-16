@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
 from src.agent import UniversityAgent
+from src.agent.streaming import format_sse
 from src.api.dependencies import get_content_service
 from src.api.services.content_service import ContentService
-from src.agent.streaming import format_sse
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 

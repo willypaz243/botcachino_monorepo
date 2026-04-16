@@ -2,10 +2,10 @@ from typing import Any
 
 from langchain_core.messages import SystemMessage
 
-from src.agent.config import agent_settings
 from src.agent.constants import ROUTER_SYSTEM_PROMPT
 from src.agent.services import get_services
 from src.agent.state import AgentState
+from src.config import settings
 
 
 async def router_node(state: AgentState) -> dict[str, Any]:
@@ -15,13 +15,14 @@ async def router_node(state: AgentState) -> dict[str, Any]:
     from langchain_nebius import ChatNebius
 
     llm = ChatNebius(
-        model=agent_settings.router_model.name,
-        temperature=agent_settings.router_model.temperature,
+        model=settings.agent.router_model.name,
+        api_key=settings.agent.router_model.api_key,
+        temperature=settings.agent.router_model.temperature,
     )
 
     messages = [
         SystemMessage(
-            content=ROUTER_SYSTEM_PROMPT.format(university=agent_settings.university_name)
+            content=ROUTER_SYSTEM_PROMPT.format(university=settings.agent.university_name)
         ),
         *state["messages"][-3:],
     ]

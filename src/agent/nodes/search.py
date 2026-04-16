@@ -4,10 +4,10 @@ from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.agent.config import agent_settings
 from src.agent.constants import SEARCH_SYSTEM_PROMPT
 from src.agent.services import get_services
 from src.agent.state import AgentState, EvaluationResult
+from src.config import settings
 
 
 def parse_json_from_response(content: str) -> EvaluationResult:
@@ -36,7 +36,7 @@ async def search_node(state: AgentState) -> dict[str, Any]:
     search_tool = await services.get_search_tool()
 
     query = state.get("query") or state["messages"][-1].content
-    limit = agent_settings.default_search_limit
+    limit = settings.agent.default_search_limit
 
     search_results_raw: str = await search_tool.ainvoke(
         {
@@ -71,12 +71,15 @@ async def search_node(state: AgentState) -> dict[str, Any]:
 
     from langchain_nebius import ChatNebius
 
-    chat_model = ChatNebius(model=agent_settings.model.name)
+    chat_model = ChatNebius(
+        model=settings.agent.model.name,
+        api_key=settings.agent.router_model.api_key,
+    )
 
     evaluation_messages = [
         SystemMessage(
             content=SEARCH_SYSTEM_PROMPT.format(
-                university=agent_settings.university_name,
+                university=settings.agent.university_name,
                 query=query,
                 contents=contents_str,
             )

@@ -1,5 +1,5 @@
 import json
-from typing import Literal
+from typing import Any, Literal
 
 
 class AgentResponseChunk:
@@ -8,12 +8,12 @@ class AgentResponseChunk:
         content: str,
         type: Literal["text", "error", "info"] = "info",
         done: bool = False,
-    ):
-        self.content = content
-        self.type = type
-        self.done = done
+    ) -> None:
+        self.content: str = content
+        self.type: Literal["text", "error", "info"] = type
+        self.done: bool = done
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "content": self.content,
             "type": self.type,

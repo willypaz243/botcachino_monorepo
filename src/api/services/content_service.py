@@ -76,11 +76,8 @@ class ContentService:
         return True
 
     async def search(self, query_text: str, limit: int = 5, offset: int = 0) -> list[Content]:
-        print("Normalizing text ...")
         normalized_text = self.emb_service.pre_process_text(query_text)
-        print("Query embedding ...")
         query_embedding = await self.emb_service.embed_text(normalized_text)
-        print("Query embedding done.")
 
         query = (
             select(Content)
