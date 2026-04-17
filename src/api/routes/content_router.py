@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_content_service
-from src.api.routes.schemas import SearchParams, PaginationParams
+from src.api.routes.schemas import PaginationParams, SearchParams, SortField, SortOrder
 from src.api.services.content_service import ContentService
-from src.db.models.content import ContentCreate, ContentUpdate, ContentRead
+from src.db.models.content import ContentCreate, ContentRead, ContentUpdate
 
 router = APIRouter(prefix="/content", tags=["Content"])
 
@@ -20,9 +20,13 @@ async def create_content(
 async def read_contents(
     limit: int = PaginationParams.limit,
     offset: int = PaginationParams.offset,
-    content_service: ContentService = Depends(get_content_service)
+    sort: SortField = PaginationParams.sort,
+    order: SortOrder = PaginationParams.order,
+    content_service: ContentService = Depends(get_content_service),
 ):
-    return await content_service.get_all_contents(limit=limit, offset=offset)
+    return await content_service.get_all_contents(
+        limit=limit, offset=offset, sort_field=sort, sort_order=order,
+    )
 
 
 @router.get("/search/", response_model=list[ContentRead])
