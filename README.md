@@ -11,6 +11,7 @@ Sistema de gestión de noticias e información con interfaz web, construido con 
 | **Frontend** | React 19, Vite, Bun |
 | **ORM** | SQLModel + SQLAlchemy async |
 | **Gestor de Paquetes** | uv (Python), Bun (frontend) |
+| **Agente AI** | LangGraph (University Information Agent) |
 
 ## Requisitos Previos
 
@@ -78,23 +79,40 @@ botcachino_monorepo/
 │   ├── api/                  # Endpoints y lógica de API
 │   │   ├── routes/           # Routers FastAPI
 │   │   │   ├── content_router.py
+│   │   │   ├── agent_router.py
+│   │   │   ├── schemas.py
 │   │   │   └── __init__.py
 │   │   ├── services/         # Lógica de negocio
-│   │   │   └── content_service.py
+│   │   │   ├── content_service.py
+│   │   │   └── embedding_service.py
 │   │   ├── dependencies.py   # Inyección de dependencias
 │   │   └── server.py         # App FastAPI
 │   ├── db/                   # Configuración de base de datos
 │   │   ├── database.py       # Engine async y session maker
-│   │   ├── init-db/          # Scripts de inicialización de DB
-│   │   │   └── init.sql
 │   │   └── models/           # Modelos SQLModel
-│   │       └── content.py
-│   └── agent/                # Lógica de agente (placeholder)
+│   └── agent/                # University Information Agent (LangGraph)
+│       ├── config.py         # Configuración del agente
+│       ├── constants.py      # System prompts y mensajes
+│       ├── state.py          # LangGraph state schema
+│       ├── exceptions.py     # Excepciones personalizadas
+│       ├── tools.py          # Semantic search tool
+│       ├── nodes/            # Graph nodes (router, search, respond, etc.)
+│       ├── graph.py          # LangGraph construction
+│       ├── langgraph_app.py  # LangGraph CLI app entry
+│       ├── agent.py          # High-level agent interface
+│       └── streaming.py      # SSE formatting utilities
+├── data/                     # Datos de ejemplo para seeding
+│   ├── scholarship.json      # Becas y movilidad internacional
+│   ├── news.json             # Noticias e información del campus
+│   └── announcements.json    # Anuncios y actividades
+├── scripts/                  # Scripts de utilidad
+│   └── seed_data.py          # Script para sembrar la base de datos
 ├── web/                      # Frontend React
 │   ├── src/                  # Componentes React
 │   ├── eslint.config.js      # Configuración ESLint
 │   └── vite.config.js        # Configuración Vite
 ├── main.py                   # Punto de entrada (importa src/api/server.py)
+├── commands.py               # CLI interface para seeding
 ├── pyproject.toml            # Dependencias Python
 ├── docker-compose.yaml       # PostgreSQL + Adminer
 └── AGENTS.md                 # Guía para agentes de IA
@@ -107,56 +125,116 @@ botcachino_monorepo/
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | GET | `/content/` | Listar todo el contenido |
+| GET | `/content/search/` | Búsqueda semántica por texto |
 | GET | `/content/{id}` | Obtener contenido por ID |
 | POST | `/content/` | Crear nuevo contenido |
 | PATCH | `/content/{id}` | Actualizar contenido |
 | DELETE | `/content/{id}` | Eliminar contenido |
+
+#### Búsqueda Semántica
+
+El endpoint `/content/search/` permite realizar búsquedas semánticas usando embeddings vectoriales:
+
+| Parámetro | Tipo | Default | Descripción |
+|------------|------|---------|-------------|
+| `q` | string | requerido | Texto de búsqueda (1-500 chars) |
+| `limit` | int | 5 | Número máximo de resultados (1-100) |
+| `offset` | int | 0 | Desplazamiento para paginación |
+
+**Ejemplo:**
+
+```bash
+# Buscar contenido semánticamente
+curl "http://127.0.0.1:8000/content/search/?q=becas%20para%20estudiantes&limit=3"
+
+# Con offset para paginación
+curl "http://127.0.0.1:8000/content/search/?q=noticias&limit=10&offset=10"
+```
+
+La búsqueda usa distancia coseno (`<=>`) para comparar el embedding de la consulta con los embeddings almacenados, ordenando los resultados por mejor coincidencia.
 
 ### Content Model
 
 El modelo `Content` incluye:
 - **title**: Título (2-200 caracteres)
 - **summary**: Resumen (2-500 caracteres)
-- **category**: Categoría (INFO, NEW)
+- **category**: Categoría (INFO, NEW, SCHOLARSH, ANN)
 - **content**: Cuerpo del contenido
 - **post_date**: Fecha de publicación
 - **embedding**: Vector de 4096 dimensiones para búsqueda semántica
 - **created_at**: Timestamp de creación
 - **updated_at**: Timestamp de actualización
 
-### Ejemplo de uso
+#### Categorías Disponibles
+
+| Categoría | Descripción |
+|-----------|-------------|
+| INFO | Información general del campus |
+| NEW | Novedades institucionales |
+| SCHOLARSH | Becas y movilidad internacional |
+| ANN | Anuncios y actividades universitarias |
+
+### University Information Agent
+
+El agente utiliza LangGraph para responder preguntas sobre la universidad usando búsqueda semántica.
+
+**POST /api/agent/chat**
+
+Query parameters:
+- `message` (required): User message (1-2000 chars)
+- `thread_id` (required): Conversation thread ID (1-100 chars)
+
+Response: Server-Sent Events (SSE) stream
+
+Event format:
+```json
+{
+  "content": "string",
+  "type": "text" | "error" | "info",
+  "done": boolean
+}
+```
+
+El agente clasifica consultas, realiza búsqueda semántica, evalúa resultados, y genera respuestas con streaming.
+
+## Agregar Datos
+
+### Datos de Ejemplo
+
+Los datos de ejemplo se encuentran en el directorio `data/`. Cada archivo JSON debe tener la siguiente estructura:
+
+```json
+[
+  {
+    "title": "Título del contenido",
+    "content": "Contenido completo...",
+    "summary": "Resumen breve",
+    "post_date": "2025-04-12"
+  }
+]
+```
+
+**Tipos de categorías y archivos:**
+- `scholarship.json` → Categoría: `SCHOLARSH` (Becas y movilidad)
+- `news.json` → Categoría: `ANN` (Noticias e información)
+- `announcements.json` → Categoría: `INFO` (Anuncios y actividades)
+
+Para actualizar los datos, simplemente modifique los archivos JSON y ejecute:
 
 ```bash
-# Crear contenido
-curl -X POST http://127.0.0.1:8000/content/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Título del contenido",
-    "summary": "Resumen breve",
-    "category": "INFO",
-    "content": "Contenido completo del artículo...",
-    "post_date": "2026-01-01T10:00:00"
-  }'
-
-# Listar contenido
-curl http://127.0.0.1:8000/content/
-
-# Obtener por ID
-curl http://127.0.0.1:8000/content/1
-
-# Actualizar
-curl -X PATCH http://127.0.0.1:8000/content/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Título actualizado",
-    "summary": "Resumen actualizado"
-  }'
-
-# Eliminar
-curl -X DELETE http://127.0.0.1:8000/content/1
+python commands.py --fill
 ```
 
 ## Comandos Útiles
+
+### Seed Data
+
+```bash
+python commands.py --fill  # Sembrar la base de datos con datos de ejemplo
+python commands.py --fill --dry-run  # Ver qué haría sin ejecutar
+```
+
+Este script carga los archivos JSON del directorio `data/` (scholarship.json, news.json, announcements.json) y los inserta en la base de datos con embeddings generados automáticamente.
 
 ### Python / Backend
 
@@ -167,6 +245,10 @@ uv run python -m src.api.server    # Ejecutar módulo específico
 
 # Con hot-reload (desarrollo)
 uv run uvicorn src.api.server:app --reload --port 8000
+
+# LangGraph Agent Development
+uv run langgraph dev              # start dev server on port 2024
+                                   # access Studio: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 ```
 
 ### Frontend
@@ -197,6 +279,7 @@ docker compose exec db psql -U postgres -d botcachino  # CLI de PostgreSQL
 - **Modelos**: Usar SQLModel con las variantes `*Base`, `*Create`, `*Update`, `*Read`
 - **Timestamps**: Usar `datetime.now(UTC)` para mantener consistencia con PostgreSQL
 - **Sesiones**: Inyectar vía `Depends()` en los routers
+- **Python 3.13**: `pyproject.toml` requiere `>=3.13`. No agregar deps con Python versiones anteriores.
 
 ### Frontend
 
@@ -218,8 +301,45 @@ git commit -m "docs: update README"
 Variables de entorno (ver `.env.example`):
 
 ```bash
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino
+# Agent Configuration
+AGENT__UNIVERSITY_NAME="Universidad Mayor de San Simon (UMSS)"
+AGENT_MODEL__NAME="openai/gpt-oss-120b-fast"
+AGENT_MODEL__API_KEY="[model-api-key]"
+AGENT_ROUTER_MODEL__NAME="openai/gpt-oss-120b-fast"
+AGENT_ROUTER_MODEL__API_KEY="[model-api-key]"
+AGENT_MAX_SEARCH_RETRIES=5
+AGENT_MAX_RESPONSE_TOKENS=1024
+
+# IA Services
+NEBIUS__API_KEY="[model-api-key]"
+
+# Database
+DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino"
 ```
+
+## Arquitectura del Sistema
+
+### Servicios Principales
+
+- **ContentService**: Maneja operaciones CRUD sobre el modelo `Content`
+- **EmbbedingService**: Genera embeddings para búsqueda semántica usando modelos de langchain (NebiusEmbeddings)
+- **UniversityAgent**: Agente LangGraph que responde preguntas sobre la universidad
+
+### Flujo de Embeddings
+
+1. Los datos se cargan desde JSON en el directorio `data/`
+2. Se procesan y normalizan (pre_process_text)
+3. Se generan embeddings vectoriales de 4096 dimensiones
+4. Se almacenan junto con el contenido en PostgreSQL con pgvector
+
+### Agent Architecture
+
+El agente utiliza LangGraph con los siguientes nodes:
+- **Router**: Clasifica consultas como relevantes o off-topic
+- **Search**: Realiza búsqueda semántica
+- **Fetch IDs**: Recupera el contenido por IDs
+- **Respond**: Genera la respuesta final
+- **Retry**: Reintenta la búsqueda si no se encuentran resultados relevantes
 
 ## Recursos Adicionales
 
@@ -229,6 +349,7 @@ DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino
 - [pgvector](https://github.com/pgvector/pgvector) (búsqueda vectorial)
 - [React Docs](https://react.dev/)
 - [Vite](https://vitejs.dev/)
+- [LangGraph](https://langchain-ai.github.io/langgraph/) (agente AI)
 
 ## Troubleshooting
 
@@ -249,10 +370,27 @@ docker compose restart
 uv sync
 ```
 
+### Error al sembrar datos (401 Authentication)
+
+```bash
+# Verificar que la API Key de Nebius está configurada en .env
+# La API Key debe ser válida y tener acceso al modelo Qwen3-Embedding-8B
+```
+
 ### Frontend no carga
 
 ```bash
 cd web
 rm -rf node_modules bun.lock
 bun install
+```
+
+### Agente no responde correctamente
+
+```bash
+# Verificar que el servidor LangGraph está corriendo
+uv run langgraph dev
+
+# Revisar los logs y verificar la configuración de variables de entorno
+# Consultar AGENTS.md para más detalles sobre la configuración
 ```

@@ -8,6 +8,8 @@ from sqlmodel import Column, DateTime, Field, SQLModel, text
 class Category(str, Enum):
     INFO = "INFO"
     NEW = "NEW"
+    SCHOLARSH = "SCHOLARSH"
+    ANN = "ANN"
 
 
 class ContentBase(SQLModel):
@@ -79,4 +81,3 @@ class ContentRead(ContentBase):
     id: int
     created_at: datetime
     updated_at: datetime
-

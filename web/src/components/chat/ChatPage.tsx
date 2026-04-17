@@ -5,6 +5,7 @@ import MessageInput from "./MessageInput";
 import TypingIndicator from "./TypingIndicator";
 import NewsSidebar from "../news/NewsSidebar";
 import { HistorySidebar } from "./Historial/HistorySidebar";
+import NewsCarousel from "../news/NewsCarousel";
 import "./ChatPage.css";
 
 export default function ChatPage() {
@@ -18,6 +19,7 @@ export default function ChatPage() {
     setInputValue("");
   };
 
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
@@ -77,6 +79,8 @@ export default function ChatPage() {
           </button>
         </header>
 
+        <NewsCarousel />
+
         <main
           className="chat-messages"
           id="chat-messages"
@@ -97,10 +101,15 @@ export default function ChatPage() {
           disabled={isLoading}
           value={inputValue}
           onChange={setInputValue}
+          inputRef={inputRef}
         />
       </div>
-
-      <NewsSidebar onSelect={(texto) => setInputValue(texto)} />
+      <NewsSidebar
+        onSelect={(texto) => {
+          setInputValue(texto);
+          inputRef.current?.focus();
+        }}
+      />{" "}
     </div>
   );
 }

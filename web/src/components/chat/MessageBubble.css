@@ -14,6 +14,25 @@
   justify-content: flex-start;
 }
 
+.message-row--info {
+  justify-content: center;
+  padding: 8px 24px;
+}
+
+.message-bubble--info {
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+}
+
+.message-text--info {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+}
+
 .message-avatar {
   width: 30px;
   height: 30px;
