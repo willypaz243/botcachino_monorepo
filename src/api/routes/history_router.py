@@ -13,6 +13,7 @@ from src.db.models.history import (
 
 router = APIRouter(prefix="/history", tags=["History"])
 
+
 @router.post(
     "/conversations/",
     response_model=ConversationRead,
@@ -71,6 +72,7 @@ async def delete_conversation(
     if not success:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return None
+
 
 @router.post(
     "/conversations/{uuid}/messages/",

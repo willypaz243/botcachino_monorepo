@@ -5,9 +5,11 @@ from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel, Column, DateTime, text
 
+
 class Role(str, Enum):
     USER = "user"
     BOT = "bot"
+
 
 class MessageBase(SQLModel):
     role: Role
@@ -20,26 +22,28 @@ class MessageBase(SQLModel):
         ),
     )
 
+
 class Message(MessageBase, table=True):
     __tablename__ = "messages"
 
-    uuid: UUID = Field(
-        default_factory=uuid4, 
-        primary_key=True, 
-        index=True, 
-        nullable=False
-    )
+    uuid: UUID = Field(default_factory=uuid4, primary_key=True, index=True, nullable=False)
     conversation_uuid: UUID = Field(foreign_key="conversations.uuid", index=True)
 
     conversation: "Conversation" = Relationship(back_populates="messages")
 
 
-class MessageCreate(MessageBase):
-    pass
+class MessageCreate(SQLModel):
+    role: Role
+    content: str
+    timestamp: datetime | None = None
 
 
-class MessageRead(MessageBase):
-    pass
+class MessageRead(SQLModel):
+    uuid: UUID
+    role: Role
+    content: str
+    timestamp: datetime
+
 
 class ConversationBase(SQLModel):
     title: str
@@ -48,12 +52,7 @@ class ConversationBase(SQLModel):
 class Conversation(ConversationBase, table=True):
     __tablename__ = "conversations"
 
-    uuid: UUID = Field(
-        default_factory=uuid4, 
-        primary_key=True, 
-        index=True, 
-        nullable=False
-    )
+    uuid: UUID = Field(default_factory=uuid4, primary_key=True, index=True, nullable=False)
 
     messages: List[Message] = Relationship(
         back_populates="conversation",
@@ -70,4 +69,4 @@ class ConversationUpdate(SQLModel):
 
 
 class ConversationRead(ConversationBase):
-    pass
+    uuid: UUID
