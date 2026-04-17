@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import Query
 
 
@@ -17,6 +19,22 @@ class PaginationParams:
         description="Number of results to skip for pagination.",
         ge=0,
         examples=[0, 10, 50],
+    )
+
+
+class DateFilterParams:
+    start_date: datetime | None = Query(
+        default=None,
+        title="Start date",
+        description="Filter content published on or after this date (ISO 8601 format).",
+        examples=["2025-01-01T00:00:00", "2025-06-15"],
+    )
+
+    end_date: datetime | None = Query(
+        default=None,
+        title="End date",
+        description="Filter content published on or before this date (ISO 8601 format).",
+        examples=["2025-12-31T23:59:59", "2025-06-30"],
     )
 
 
@@ -40,3 +58,6 @@ class SearchParams:
     )
 
     offset = PaginationParams.offset
+
+    start_date = DateFilterParams.start_date
+    end_date = DateFilterParams.end_date
