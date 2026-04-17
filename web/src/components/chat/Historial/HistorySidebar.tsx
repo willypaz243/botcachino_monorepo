@@ -3,11 +3,7 @@ import { ChatSession, HistorySidebarProps } from './types';
 import { MOCK_CHATS } from './mockChats';
 import './HistorySidebar.css';
 
-// ============ UTILS ============
-
 const generateId = (): string => Math.random().toString(36).substring(2, 11);
-
-// ============ COMPONENT ============
 
 export function HistorySidebar({
   activeChat,
@@ -102,7 +98,6 @@ ${date.getMonth() + 1}/${date.getFullYear()}`;
     return months[month];
   };
 
-  // Group chats by date
   const groupedChats = chats.reduce(
     (acc, chat) => {
       const dateKey = formatDate(chat.createdAt);

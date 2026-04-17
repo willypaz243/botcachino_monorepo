@@ -18,7 +18,6 @@ const createMessage = (
   timestamp,
 });
 
-// ============ MOCK CHATS ============
 
 export const MOCK_CHATS: ChatSession[] = [
   // ===== HOY =====
@@ -44,7 +43,7 @@ export const MOCK_CHATS: ChatSession[] = [
   {
     id: generateId(),
     title: 'Integración de API REST',
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 horas atrás
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), 
     updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
     messages: [
       createMessage(
@@ -195,6 +194,4 @@ export const MOCK_CHATS: ChatSession[] = [
       ),
     ],
   },
-
-  
 ];
