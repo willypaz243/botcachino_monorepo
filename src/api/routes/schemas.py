@@ -1,4 +1,42 @@
+from enum import Enum
+
 from fastapi import Query
+
+
+class SortField(str, Enum):
+    """Campos permitidos para ordenamiento. Valida contra inyecciones."""
+
+    POST_DATE = "post_date"
+    TITLE = "title"
+    CATEGORY = "category"
+    CREATED_AT = "created_at"
+    UPDATED_AT = "updated_at"
+
+
+class SortOrder(str, Enum):
+    """Dirección del ordenamiento."""
+
+    ASC = "asc"
+    DESC = "desc"
+
+
+class SortParams:
+    sort = Query(
+        default=SortField.POST_DATE,
+        title="Sort field",
+        description=(
+            "Field to sort results by. "
+            "Allowed values: post_date, title, category, created_at, updated_at."
+        ),
+        examples=["post_date", "title", "created_at"],
+    )
+
+    order = Query(
+        default=SortOrder.DESC,
+        title="Sort order",
+        description="Sort direction: 'asc' for ascending, 'desc' for descending.",
+        examples=["asc", "desc"],
+    )
 
 
 class PaginationParams:
@@ -18,6 +56,9 @@ class PaginationParams:
         ge=0,
         examples=[0, 10, 50],
     )
+
+    sort = SortParams.sort
+    order = SortParams.order
 
 
 class SearchParams:
