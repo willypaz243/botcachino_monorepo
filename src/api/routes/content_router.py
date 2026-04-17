@@ -3,9 +3,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_content_service
-from src.api.routes.schemas import SearchParams, PaginationParams, FilterParams
+from src.api.routes.schemas import PaginationParams, SearchParams, FilterParams, SortField, SortOrder
 from src.api.services.content_service import ContentService
-from src.db.models.content import Category, ContentCreate, ContentUpdate, ContentRead
+from src.db.models.content import Category, ContentCreate, ContentRead, ContentUpdate
 
 router = APIRouter(prefix="/content", tags=["Content"])
 
@@ -28,6 +28,8 @@ async def read_contents(
     content_contains: str | None = FilterParams.content_contains,
     limit: int = PaginationParams.limit,
     offset: int = PaginationParams.offset,
+    sort: SortField = PaginationParams.sort,
+    order: SortOrder = PaginationParams.order,
     content_service: ContentService = Depends(get_content_service),
 ):
     return await content_service.get_all_contents(
@@ -38,7 +40,9 @@ async def read_contents(
         summary_contains=summary_contains,
         content_contains=content_contains,
         limit=limit,
-        offset=offset
+        offset=offset,
+        sort_field=sort,
+        sort_order=order,
     )
 
 

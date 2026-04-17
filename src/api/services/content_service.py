@@ -1,12 +1,26 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import asc, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
+from src.api.routes.schemas import SortField, SortOrder
 from src.db.models.content import Category, Content, ContentCreate, ContentUpdate
 
 from .embedding_service import EmbbedingService
+
+SORT_FIELD_MAP: dict[SortField, any] = {
+    SortField.POST_DATE: Content.post_date,
+    SortField.TITLE: Content.title,
+    SortField.CATEGORY: Content.category,
+    SortField.CREATED_AT: Content.created_at,
+    SortField.UPDATED_AT: Content.updated_at,
+}
+
+SORT_ORDER_MAP = {
+    SortOrder.ASC: asc,
+    SortOrder.DESC: desc,
+}
 
 
 class ContentService:
@@ -46,7 +60,9 @@ class ContentService:
         summary_contains: str | None = None,
         content_contains: str | None = None,
         limit: int = 50,
-        offset: int = 0
+        offset: int = 0,
+        sort_field: SortField = SortField.POST_DATE,
+        sort_order: SortOrder = SortOrder.DESC,
     ) -> list[Content]:
         query = select(Content)
 
@@ -63,7 +79,10 @@ class ContentService:
         if content_contains:
             query = query.where(Content.content.ilike(f"%{content_contains}%"))
 
-        query = query.limit(limit).offset(offset)
+        column = SORT_FIELD_MAP[sort_field]
+        order_func = SORT_ORDER_MAP[sort_order]
+
+        query = query.order_by(order_func(column)).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
