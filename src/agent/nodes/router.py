@@ -28,7 +28,7 @@ async def router_node(state: AgentState) -> dict[str, Any]:
         *state["messages"][-3:],
     ]
 
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
     content = str(response.content).strip()
 
     try:

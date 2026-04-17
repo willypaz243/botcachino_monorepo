@@ -20,7 +20,7 @@ async def create_content(
 async def read_contents(
     limit: int = PaginationParams.limit,
     offset: int = PaginationParams.offset,
-    content_service: ContentService = Depends(get_content_service)
+    content_service: ContentService = Depends(get_content_service),
 ):
     return await content_service.get_all_contents(limit=limit, offset=offset)
 

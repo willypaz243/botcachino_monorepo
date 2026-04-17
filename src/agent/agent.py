@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 
-from src.agent.constants import INFO_MESSAGES
+from src.agent.constants import INFO_MESSAGES, RETRY_MESSAGES
 from src.agent.graph import build_agent_graph
 from src.agent.services import AgentServices
 from src.agent.state import AgentState
@@ -37,6 +37,8 @@ class UniversityAgent:
         input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
             "retry_count": 0,
+            "visited_ids": [],
+            "invalid_ids": [],
         }
 
         yield {"event": "info", "content": INFO_MESSAGES["inicio"]}
@@ -70,16 +72,23 @@ class UniversityAgent:
                                 yield {"event": "info", "content": INFO_MESSAGES["analizar"]}
                             elif node_name == "search":
                                 yield {"event": "info", "content": INFO_MESSAGES["buscar"]}
+                            elif node_name == "evaluation":
+                                yield {"event": "info", "content": INFO_MESSAGES["evaluar"]}
                             elif node_name == "fetch_ids":
                                 yield {"event": "info", "content": INFO_MESSAGES["recuperar"]}
+                            elif node_name == "respond":
+                                yield {"event": "info", "content": INFO_MESSAGES["generar"]}
                             elif node_name == "retry":
-                                if isinstance(node_state, dict):
-                                    retry_count = node_state.get("retry_count", 0)
-                                    if retry_count < 5:
-                                        yield {
-                                            "event": "info",
-                                            "content": INFO_MESSAGES["reintentando"],
-                                        }
+                                retry_count = (
+                                    node_state.get("retry_count", 0)
+                                    if isinstance(node_state, dict)
+                                    else 0
+                                )
+                                message_index = min(retry_count, len(RETRY_MESSAGES) - 1)
+                                yield {
+                                    "event": "info",
+                                    "content": RETRY_MESSAGES[message_index],
+                                }
 
         except Exception as e:
             yield {
@@ -96,6 +105,8 @@ class UniversityAgent:
         input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
             "retry_count": 0,
+            "visited_ids": [],
+            "invalid_ids": [],
         }
 
         result = await graph.ainvoke(input_data, config)
