@@ -7,7 +7,7 @@ from src.agent.state import AgentState
 from src.config import settings
 
 
-def respond_node(state: AgentState) -> dict[str, Any]:
+async def respond_node(state: AgentState) -> dict[str, Any]:
     from langchain_nebius import ChatNebius
 
     llm = ChatNebius(
@@ -57,11 +57,13 @@ def respond_node(state: AgentState) -> dict[str, Any]:
     ]
 
     full_response = ""
-    for chunk in llm.stream(messages):
+    async for chunk in llm.astream(messages):
         if chunk.content and isinstance(chunk.content, str):
             full_response += chunk.content
 
     return {
         "response": full_response,
         "sources": sources,
+        "visited_ids": [],
+        "invalid_ids": [],
     }

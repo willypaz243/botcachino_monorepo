@@ -16,6 +16,7 @@ dependencies = [
     "pydantic-settings>=2.7.0",
     "langgraph>=0.2.0",
     "sse-starlette>=1.8.0",
+    "basedpyright>=1.39.0",
 ]
 
 [tool.pytest.ini_options]
@@ -24,6 +25,16 @@ pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.13"
+include = ["src"]
+exclude = [
+    "**/__pycache__",
+    "**/.venv",
+    "**/node_modules",
+]
 
 [dependency-groups]
 dev = [

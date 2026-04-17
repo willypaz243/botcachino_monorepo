@@ -1,4 +1,3 @@
-# src/config.py
 from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -23,12 +22,6 @@ class AgentConfig(BaseModel):
 
     model: ModelConfig
     router_model: ModelConfig
-
-    # Configuración para que Pydantic lea variables de entorno anidadas
-    model_config = SettingsConfigDict(
-        env_nested_delimiter="_",  # Usar guion SIMPLE
-        env_nested_max_split=1,
-    )
 
 
 class NebiusConfig(BaseModel):

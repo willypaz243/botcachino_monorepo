@@ -25,7 +25,7 @@ def _get_categories_string() -> str:
     return ", ".join([CATEGORY_LABELS[cat] for cat in Category])
 
 
-def off_topic_node(state: AgentState) -> dict[str, Any]:
+async def off_topic_node(state: AgentState) -> dict[str, Any]:
     from langchain_nebius import ChatNebius
 
     llm = ChatNebius(
@@ -53,7 +53,7 @@ def off_topic_node(state: AgentState) -> dict[str, Any]:
 
     messages = [SystemMessage(content=system_prompt)]
 
-    response = llm.invoke(messages)
+    response = await llm.ainvoke(messages)
 
     return {
         "response": response.content,

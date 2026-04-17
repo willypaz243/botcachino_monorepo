@@ -38,6 +38,31 @@ class DateFilterParams:
     )
 
 
+class FilterParams:
+    categories = Query(
+        default=None,
+        title="Categories",
+        description="List of categories to filter by."
+    )
+    start_date = DateFilterParams.start_date
+    end_date = DateFilterParams.end_date
+    title_contains = Query(
+        default=None,
+        title="Title contains",
+        description="Filter by title contents."
+    )
+    summary_contains = Query(
+        default=None,
+        title="Summary contains",
+        description="Filter by summary contents."
+    )
+    content_contains = Query(
+        default=None,
+        title="Content contains",
+        description="Filter by main body contents."
+    )
+
+
 class SearchParams:
     q = Query(
         ...,
