@@ -47,9 +47,13 @@ async def search_content(
     q: str = SearchParams.q,
     limit: int = SearchParams.limit,
     offset: int = SearchParams.offset,
+    start_date: datetime | None = SearchParams.start_date,
+    end_date: datetime | None = SearchParams.end_date,
     content_service: ContentService = Depends(get_content_service),
 ):
-    return await content_service.search(q, limit, offset)
+    return await content_service.search(
+        q, limit, offset, start_date=start_date, end_date=end_date,
+    )
 
 
 @router.get("/{content_id}", response_model=ContentRead)

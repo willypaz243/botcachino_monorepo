@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
@@ -48,7 +49,7 @@ class ContentService:
         offset: int = 0
     ) -> list[Content]:
         query = select(Content)
-        
+
         if categories:
             query = query.where(Content.category.in_(categories))
         if start_date:
@@ -101,20 +102,32 @@ class ContentService:
         await self.session.commit()
         return True
 
-    async def search(self, query_text: str, limit: int = 5, offset: int = 0) -> list[Content]:
+    async def search(
+        self,
+        query_text: str,
+        limit: int = 5,
+        offset: int = 0,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[Content]:
         normalized_text = self.emb_service.pre_process_text(query_text)
         query_embedding = await self.emb_service.embed_text(normalized_text)
 
+        query = select(Content)
+
+        if start_date is not None:
+            query = query.where(col(Content.post_date) >= start_date)
+        if end_date is not None:
+            query = query.where(col(Content.post_date) <= end_date)
+
         query = (
-            select(Content)
+            query
             .order_by(col(Content.embedding).op("<=>")(query_embedding))
             .limit(limit)
             .offset(offset)
         )
         result = await self.session.execute(query)
-        contents = list(result.scalars().all())
-
-        return contents
+        return list(result.scalars().all())
 
     async def get_by_ids(self, ids: list[int]) -> list[Content]:
         if not ids:

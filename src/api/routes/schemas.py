@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import Query
 
 
@@ -17,6 +19,47 @@ class PaginationParams:
         description="Number of results to skip for pagination.",
         ge=0,
         examples=[0, 10, 50],
+    )
+
+
+class DateFilterParams:
+    start_date: datetime | None = Query(
+        default=None,
+        title="Start date",
+        description="Filter content published on or after this date (ISO 8601 format).",
+        examples=["2025-01-01T00:00:00", "2025-06-15"],
+    )
+
+    end_date: datetime | None = Query(
+        default=None,
+        title="End date",
+        description="Filter content published on or before this date (ISO 8601 format).",
+        examples=["2025-12-31T23:59:59", "2025-06-30"],
+    )
+
+
+class FilterParams:
+    categories = Query(
+        default=None,
+        title="Categories",
+        description="List of categories to filter by."
+    )
+    start_date = DateFilterParams.start_date
+    end_date = DateFilterParams.end_date
+    title_contains = Query(
+        default=None,
+        title="Title contains",
+        description="Filter by title contents."
+    )
+    summary_contains = Query(
+        default=None,
+        title="Summary contains",
+        description="Filter by summary contents."
+    )
+    content_contains = Query(
+        default=None,
+        title="Content contains",
+        description="Filter by main body contents."
     )
 
 
@@ -41,36 +84,5 @@ class SearchParams:
 
     offset = PaginationParams.offset
 
-
-class FilterParams:
-    categories = Query(
-        default=None,
-        title="Categories",
-        description="List of categories to filter by."
-    )
-    start_date = Query(
-        default=None,
-        title="Start date",
-        description="Limit from what date to search (post_date >= start_date)."
-    )
-    end_date = Query(
-        default=None,
-        title="End date",
-        description="Limit until what date to search (post_date <= end_date)."
-    )
-    title_contains = Query(
-        default=None,
-        title="Title contains",
-        description="Filter by title contents."
-    )
-    summary_contains = Query(
-        default=None,
-        title="Summary contains",
-        description="Filter by summary contents."
-    )
-    content_contains = Query(
-        default=None,
-        title="Content contains",
-        description="Filter by main body contents."
-    )
-
+    start_date = DateFilterParams.start_date
+    end_date = DateFilterParams.end_date

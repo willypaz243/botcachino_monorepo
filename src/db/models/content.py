@@ -27,7 +27,7 @@ class ContentBase(SQLModel):
     )
     category: Category = Field(..., description="The category the content belongs to")
     content: str = Field(..., description="The main body/text of the content")
-    post_date: datetime = Field(..., description="The date and time when the content was published")
+    post_date: datetime = Field(..., description="The date and time when the content was published", index=True)
 
     model_config = {
         "json_schema_extra": {
