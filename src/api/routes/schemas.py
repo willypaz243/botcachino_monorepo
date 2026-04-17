@@ -40,3 +40,37 @@ class SearchParams:
     )
 
     offset = PaginationParams.offset
+
+
+class FilterParams:
+    categories = Query(
+        default=None,
+        title="Categories",
+        description="List of categories to filter by."
+    )
+    start_date = Query(
+        default=None,
+        title="Start date",
+        description="Limit from what date to search (post_date >= start_date)."
+    )
+    end_date = Query(
+        default=None,
+        title="End date",
+        description="Limit until what date to search (post_date <= end_date)."
+    )
+    title_contains = Query(
+        default=None,
+        title="Title contains",
+        description="Filter by title contents."
+    )
+    summary_contains = Query(
+        default=None,
+        title="Summary contains",
+        description="Filter by summary contents."
+    )
+    content_contains = Query(
+        default=None,
+        title="Content contains",
+        description="Filter by main body contents."
+    )
+
