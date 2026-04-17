@@ -3,6 +3,8 @@ import json
 import os
 from datetime import datetime
 
+from sqlmodel import select
+
 from src.api.dependencies import get_emb_service
 from src.db.database import async_session_maker
 from src.db.models.content import Category, Content, ContentCreate
@@ -38,16 +40,46 @@ async def seed_data():
                 if not items:
                     continue
 
+                existing_titles_query = await session.execute(
+                    select(Content.title).where(Content.category == category)
+                )
+                existing_titles = set(existing_titles_query.scalars().all())
+
                 # Prepare texts for batch embedding
                 texts_to_embed = []
                 content_payloads = []
 
                 for item in items:
+                    title = item.get("title", "").strip() if item.get("title") else ""
+                    summary = item.get("summary", "").strip() if item.get("summary") else ""
+                    content = item.get("content", "").strip() if item.get("content") else ""
+                    post_date_str = item.get("post_date", "").strip() if item.get("post_date") else ""
+
+                    if not title or not summary or not content or not post_date_str:
+                        print(f"Ignoring item with missing fields: {title[:30]}")
+                        continue
+
+                    if len(title) < 2 or len(title) > 200 or len(summary) < 2 or len(summary) > 500:
+                        print(f"Ignoring item with out of bounds length: {title[:30]}")
+                        continue
+
+                    if title in existing_titles:
+                        print(f"Ignoring duplicated item: {title[:30]}")
+                        continue
+
+                    try:
+                        post_date = datetime.fromisoformat(post_date_str)
+                    except ValueError:
+                        print(f"Ignoring item with invalid date: {title[:30]}")
+                        continue
+
+                    existing_titles.add(title)
+
                     # Replicate the text construction from ContentService.create_content
                     # We use the emb_service to pre-process the text
-                    processed_title = emb_service.pre_process_text(item["title"])
-                    processed_summary = emb_service.pre_process_text(item["summary"])
-                    processed_content = emb_service.pre_process_text(item["content"])
+                    processed_title = emb_service.pre_process_text(title)
+                    processed_summary = emb_service.pre_process_text(summary)
+                    processed_content = emb_service.pre_process_text(content)
 
                     text_content = (
                         f"#{processed_title}\n\n"
@@ -59,17 +91,19 @@ async def seed_data():
 
                     # Prepare the content creation payload
                     # Note: we need to parse the date string to datetime
-                    post_date = datetime.fromisoformat(item["post_date"])
-
                     content_payloads.append(
                         {
-                            "title": item["title"],
-                            "summary": item["summary"],
+                            "title": title,
+                            "summary": summary,
                             "category": category,
-                            "content": item["content"],
+                            "content": content,
                             "post_date": post_date,
                         }
                     )
+
+                if not texts_to_embed:
+                    print(f"Skipping {filename}, no items to insert.")
+                    continue
 
                 # Batch embed all texts in this file
                 print(f"Generating embeddings for {len(texts_to_embed)} items...")

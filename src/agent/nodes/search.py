@@ -1,99 +1,94 @@
-import json
-import re
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.agent.constants import SEARCH_SYSTEM_PROMPT
+from src.agent.constants import SEARCH_SYSTEM_PROMPT, SEARCH_TOOL_PROMPT
 from src.agent.services import get_services
 from src.agent.state import AgentState, EvaluationResult
 from src.config import settings
 
 
-def parse_json_from_response(content: str) -> EvaluationResult:
-    """Parse JSON from LLM response."""
-    content = content.strip()
-
-    json_match = re.search(r"\{[^}]+\}", content)
-    if json_match:
-        try:
-            data = json.loads(json_match.group())
-            return EvaluationResult(relevant_ids=data.get("relevant_ids", []))
-        except json.JSONDecodeError:
-            pass
-
-    ids_match = re.search(r'"relevant_ids"\s*:\s*\[([^\]]+)\]', content)
-    if ids_match:
-        ids_str = ids_match.group(1)
-        ids = [int(x.strip()) for x in ids_str.split(",") if x.strip().isdigit()]
-        return EvaluationResult(relevant_ids=ids)
-
-    return EvaluationResult(relevant_ids=[])
-
-
 async def search_node(state: AgentState) -> dict[str, Any]:
+    from langchain_nebius import ChatNebius
+
     services = get_services()
     search_tool = await services.get_search_tool()
 
-    query = state.get("query") or state["messages"][-1].content
-    limit = settings.agent.default_search_limit
+    tools = {"semantic_search": search_tool}
 
-    search_results_raw: str = await search_tool.ainvoke(
-        {
-            "query": query,
-            "limit": limit,
-        }
-    )
+    original_query = state.get("query") or state["messages"][-1].content
 
-    search_results = []
-    for line in search_results_raw.split("---"):
-        if "ID:" in line and "Resumen:" in line:
-            parts = line.split("\n")
-            id_part = parts[0].replace("ID:", "").strip()
-            summary_part = parts[1].replace("Resumen:", "").strip()
-            try:
-                search_results.append(
-                    {
-                        "id": int(id_part),
-                        "summary": summary_part,
-                    }
-                )
-            except ValueError:
-                continue
+    visited_ids = set(state.get("visited_ids", []) or [])
+    invalid_ids = set(state.get("invalid_ids", []) or [])
 
-    if not search_results:
+    llm_with_tools = ChatNebius(
+        model=settings.agent.router_model.name,
+        api_key=settings.agent.router_model.api_key,
+        temperature=0.3,
+    ).bind_tools([search_tool])
+
+    search_messages = [
+        SystemMessage(
+            content=SEARCH_TOOL_PROMPT.format(
+                university=settings.agent.university_name,
+                query=original_query,
+            )
+        ),
+        HumanMessage(content=original_query),
+    ]
+
+    search_response = await llm_with_tools.ainvoke(search_messages)
+
+    tools_results = ""
+    if hasattr(search_response, "tool_calls") and search_response.tool_calls:
+        for tool_call in search_response.tool_calls:
+            tool = tools.get(tool_call.get("name", "semantic_search"), lambda *_: "")
+
+            result = await tool.ainvoke(tool_call.get("args"))
+
+            tools_results += f"\nTool Name:{tool_call.get('name')}\nArgs: {tool_call.get('args')}\nResults:\n{result}\n"
+
+    if not tools_results:
         return {
-            "search_results": [],
-            "evaluation_result": EvaluationResult(relevant_ids=[]),
+            "evaluation_result": None,
+            "query": original_query,
+            "visited_ids": list(visited_ids),
+            "invalid_ids": list(invalid_ids),
         }
-
-    contents_str = "\n\n".join([f"ID: {r['id']}\nResumen: {r['summary']}" for r in search_results])
-
-    from langchain_nebius import ChatNebius
 
     chat_model = ChatNebius(
         model=settings.agent.model.name,
         api_key=settings.agent.router_model.api_key,
+        temperature=0,
     )
+    structured_model = chat_model.with_structured_output(EvaluationResult)
 
-    evaluation_messages = [
-        SystemMessage(
-            content=SEARCH_SYSTEM_PROMPT.format(
-                university=settings.agent.university_name,
-                query=query,
-                contents=contents_str,
-            )
-        ),
-        HumanMessage(
-            content='¿Cuáles de estos contenidos son relevantes? Responde solo con JSON: {"relevant_ids": [1, 2, 3]}'
-        ),
-    ]
+    system_message = SystemMessage(
+        content=SEARCH_SYSTEM_PROMPT.format(
+            university=settings.agent.university_name,
+            query=original_query,
+            contents=tools_results,
+        )
+    )
+    human_message = HumanMessage(content="Dame los ids relevantes a la solicitud.")
+    messages = [system_message, human_message]
 
-    response = await chat_model.ainvoke(evaluation_messages)
-    evaluation_result = parse_json_from_response(str(response.content))
+    evaluation_result: EvaluationResult | None = None
 
-    return {
-        "search_results": search_results,
-        "evaluation_result": evaluation_result,
-        "query": query,
-    }
+    for _ in range(3):
+        try:
+            evaluation_result = await structured_model.ainvoke(messages)  # type: ignore
+            break
+        except Exception:
+            messages.append(SystemMessage(content="Intenta reformular la búsqueda."))
+
+    if evaluation_result is not None:
+        invalid_ids = invalid_ids | set(evaluation_result.no_relevant_ids)
+
+        return {
+            "evaluation_result": evaluation_result,
+            "query": original_query,
+            "visited_ids": list(visited_ids),
+            "invalid_ids": list(invalid_ids),
+        }
+    return {}

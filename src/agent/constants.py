@@ -8,9 +8,31 @@ INFO_MESSAGES = {
     "completado": "Respuesta completada",
     "corrigiendo": "Corrigiendo respuesta...",
     "error_final": "Lo siento, no pude procesar tu solicitud. Por favor, intenta de nuevo.",
-    "reintentando": "Reintentando búsqueda...",
-    "no_encontrado": "No encontré información relevante sobre ese tema.",
+    "no_encontrado": "No encontré información relevante sobre ese tema. ¿Te gustaría reformular tu pregunta o consultar sobre otro tema de la universidad?",
 }
+
+RETRY_MESSAGES = [
+    "Buscando más resultados...",
+    "Refinando la búsqueda...",
+    "Buscando alternativas...",
+    "Ampliando la búsqueda...",
+    "Buscando información adicional...",
+    "Reformulando la búsqueda...",
+    "Buscando más detalles...",
+]
+
+QUERY_REWRITE_PROMPT = """Eres un asistente de información de {university}.
+Tu tarea es reformular la consulta del usuario para que sea más efectiva para buscar en la base de datos.
+
+Consulta original: {query}
+
+Instrucciones:
+1. Analiza la consulta del usuario
+2. Crea una consulta reformulada que sea más específica y clara para buscar
+3. La consulta reformulada debe mantener el mismo significado pero ser más eficiente para búsqueda semántica
+4. Puede incluir sinónimos o términos relacionados
+
+Responde ÚNICAMENTE con la consulta reformulada, sin explicaciones."""
 
 ROUTER_SYSTEM_PROMPT = """Eres un asistente de información de {university}.
 Tu tarea es clasificar si la consulta del usuario es relevante para la universidad.
@@ -33,17 +55,44 @@ SEARCH_SYSTEM_PROMPT = """Eres un asistente de información de {university}.
 Recibirás una lista de contenidos con su ID y resumen.
 Tu tarea es determinar cuáles son relevantes para responder la pregunta del usuario.
 
-Pregunta: {query}
+Pregunta del usuario: {query}
 
 Contenido disponible:
 {contents}
 
 Responde ÚNICAMENTE con JSON:
-{{"relevant_ids": [id1, id2, ...]}}
+{{"relevant_ids": [id1, id2, id3, ...], "no_relevant_ids": [id4, id5, id6, ...]}}
 
-- Incluye en la lista solo los IDs de contenidos que contengan información útil para responder.
-- Si ninguno es relevante,返回一个空数组: {{"relevant_ids": []}}
+Ejemplos de respuestas válidas:
+- {{"relevant_ids": [1, 2, 3], "no_relevant_ids": [4, 5, 6]}} (tres IDs distintos)
+- {{"relevant_ids": [5, 10, 15, 20], "no_relevant_ids": [25, 30, 35]}} (cuatro IDs distintos)
+- {{"relevant_ids": [], "no_relevant_ids": [1, 2, 3, 4, 5, 6]}} (ninguno relevante)
+
+INSTRUCCIONES OBLIGATORIAS:
+- Debes devolver VARIOS IDs (máximo 5) si hay múltiples contenidos relevantes.
+- NO devuelvas solo 1 ID a menos que solo 1 contenido sea relevante.
+- La pregunta "{query}" puede requerir información de varias fuentes.
+- Si hay dudas, incluye más IDs en lugar de menos.
 """
+
+SEARCH_TOOL_PROMPT = """Eres un asistente de búsqueda de {university}.
+El usuario quiere buscar información en la base de datos.
+
+Usuario: {query}
+
+Herramientas disponibles:
+- semantic_search: Busca contenido usando búsqueda semántica
+  - Parámetros:
+    - query (str): Consulta de búsqueda reformulada para ser más efectiva
+    - limit (int): Número máximo de resultados (1-10)
+
+INSTRUCCIONES:
+1. Analiza la consulta del usuario
+2. Reformula la consulta para que sea más efectiva (sinónimos, términos clave)
+3. Selecciona el límite apropiado (mayor si necesita más información)
+4. Llama a la herramienta 'semantic_search' con los parámetros seleccionados
+
+La consulta debe ser clara y específica para obtener mejores resultados de búsqueda semántica."""
 
 RESPOND_SYSTEM_PROMPT = """Eres un asistente informativo de {university}.
 Instrucciones:

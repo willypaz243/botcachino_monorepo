@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from sqlalchemy import asc, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
 from src.api.routes.schemas import SortField, SortOrder
-from src.db.models.content import Content, ContentCreate, ContentUpdate
+from src.db.models.content import Category, Content, ContentCreate, ContentUpdate
 
 from .embedding_service import EmbbedingService
 
@@ -51,15 +53,36 @@ class ContentService:
 
     async def get_all_contents(
         self,
+        categories: list[Category] | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        title_contains: str | None = None,
+        summary_contains: str | None = None,
+        content_contains: str | None = None,
         limit: int = 50,
         offset: int = 0,
         sort_field: SortField = SortField.POST_DATE,
         sort_order: SortOrder = SortOrder.DESC,
     ) -> list[Content]:
+        query = select(Content)
+
+        if categories:
+            query = query.where(Content.category.in_(categories))
+        if start_date:
+            query = query.where(Content.post_date >= start_date)
+        if end_date:
+            query = query.where(Content.post_date <= end_date)
+        if title_contains:
+            query = query.where(Content.title.ilike(f"%{title_contains}%"))
+        if summary_contains:
+            query = query.where(Content.summary.ilike(f"%{summary_contains}%"))
+        if content_contains:
+            query = query.where(Content.content.ilike(f"%{content_contains}%"))
+
         column = SORT_FIELD_MAP[sort_field]
         order_func = SORT_ORDER_MAP[sort_order]
 
-        query = select(Content).order_by(order_func(column)).limit(limit).offset(offset)
+        query = query.order_by(order_func(column)).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
