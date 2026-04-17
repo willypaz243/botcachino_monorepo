@@ -1,0 +1,126 @@
+/* ============================================
+   DESIGN TOKENS - Variables Base del Sistema
+   ============================================ */
+
+:root {
+  /* ===== ALIAS PARA COMPATIBILIDAD CON CSS ORIGINAL ===== */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-surface-hover: #16161f;
+  --bg-surface-active: #1c1c28;
+  --bg-elevated: #1a1a24;
+  
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-accent: #a78bfa;
+  
+  --accent: #a78bfa;
+  --accent-dim: rgba(167, 139, 250, 0.12);
+  --accent-border: rgba(167, 139, 250, 0.3);
+  --accent-glow: rgba(167, 139, 250, 0.15);
+  
+  --user-bg: rgba(167, 139, 250, 0.1);
+  --user-border: rgba(167, 139, 250, 0.2);
+  
+  --bot-bg: rgba(255, 255, 255, 0.04);
+  --bot-border: rgba(255, 255, 255, 0.08);
+  
+  /* ===== COLORES BASE ===== */
+  --color-primary: #a78bfa;
+  --color-primary-hover: #b69dfc;
+  --color-primary-active: #9572e8;
+  
+  --color-surface: #111118;
+  --color-surface-hover: #16161f;
+  --color-surface-active: #1c1c28;
+  --color-surface-elevated: #1a1a24;
+  
+  --color-background-primary: #000000;
+  --color-background-secondary: #0a0a0f;
+  
+  /* ===== COLORES DE TEXTO ===== */
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-text-accent: #a78bfa;
+  
+  /* ===== COLORES DE ESTADO ===== */
+  --color-status-success: #22c55e;
+  --color-status-error: #ef4444;
+  --color-status-warning: #f5a900;
+  
+  /* ===== BORDES ===== */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  /* ===== ACCENT COLORS ===== */
+  --color-accent: #a78bfa;
+  --color-accent-dim: rgba(167, 139, 250, 0.12);
+  --color-accent-border: rgba(167, 139, 250, 0.3);
+  --color-accent-glow: rgba(167, 139, 250, 0.15);
+  
+  /* ===== COLORES DE USUARIO/BOT ===== */
+  --color-user-bg: rgba(167, 139, 250, 0.1);
+  --color-user-border: rgba(167, 139, 250, 0.2);
+  
+  --color-bot-bg: rgba(255, 255, 255, 0.04);
+  --color-bot-border: rgba(255, 255, 255, 0.08);
+  
+  /* ===== SCROLLBAR ===== */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.14);
+  
+  /* ===== TIPOGRAFÍA ===== */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* ===== ESPACIADO ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  
+  /* ===== RADIOS DE BORDE ===== */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  
+  /* ===== TRANSICIONES ===== */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  
+  /* ===== SOMBRAS ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  
+  /* ===== Z-INDEX LAYERS ===== */
+  --z-index-base: 1;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 10;
+  --z-index-modal: 200;
+  --z-index-tooltip: 300;
+}

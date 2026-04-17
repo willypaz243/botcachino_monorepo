@@ -1,0 +1,36 @@
+/* ============================================
+   MIXINS CSS - BEM y Utility Classes
+   ============================================ */
+
+/* ===== UTILIDADES DE LAYOUT ===== */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+
+/* ===== UTILIDADES DE TIPOGRAFÍA ===== */
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+
+/* ===== ANIMACIONES BASE ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeSlideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== MIXINS BEM ===== */
+/* Uso: .block__element--modifier */

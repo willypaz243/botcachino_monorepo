@@ -1,0 +1,110 @@
+/* ===== CHAT HEADER BASE ===== */
+.chatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ===== CHAT HEADER LEFT ===== */
+.chatHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== CHAT HEADER LOGO ===== */
+.chatHeaderLogo {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  font-size: 18px;
+}
+
+/* ===== CHAT HEADER INFO ===== */
+.chatHeaderInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== CHAT HEADER TITLE ===== */
+.chatHeaderTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* ===== CHAT HEADER STATUS ===== */
+.chatHeaderStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== STATUS DOT ===== */
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusDot--offline {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+  animation: none;
+}
+
+/* ===== STATUS TYPING TEXT ===== */
+.statusTextTyping {
+  color: var(--accent);
+  font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ===== CHAT HEADER CLEAR BUTTON ===== */
+.chatHeaderClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chatHeaderClear:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+  border-color: var(--border-default);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
