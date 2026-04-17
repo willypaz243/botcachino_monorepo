@@ -1,4 +1,3 @@
-
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
 
@@ -16,6 +15,7 @@ class AgentState(MessagesState, total=False):
     query: str | None
     original_query: str | None
     is_relevant: bool | None
+    off_topic_reason: str | None
     search_results: list[dict[str, str | int]] | None
     evaluation_result: EvaluationResult | None
     retry_count: int
