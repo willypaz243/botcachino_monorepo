@@ -1,4 +1,6 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import './MessageBubble.css';
 
 export interface Message {
@@ -38,9 +40,20 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {isUser ? (
           <p className="message-text">{message.content}</p>
         ) : (
-          <ReactMarkdown components={{
-            p: ({ children }) => <p className="message-text">{children}</p>,
-          }}>{message.content}</ReactMarkdown>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            components={{
+              p: ({ children }) => <p className="message-text">{children}</p>,
+              table: ({ children }) => (
+                <div className="table-wrapper">
+                  <table className="message-table">{children}</table>
+                </div>
+              ),
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
         )}
         <span className="message-time">{formatTime(message.timestamp)}</span>
       </div>

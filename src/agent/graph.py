@@ -5,7 +5,7 @@ from langgraph.graph.state import CompiledStateGraph
 from src.agent.nodes.fetch_ids import fetch_ids_node
 from src.agent.nodes.off_topic import off_topic_node
 from src.agent.nodes.respond import respond_node
-from src.agent.nodes.retry import retry_node, should_retry
+from src.agent.nodes.retry import retry_node
 from src.agent.nodes.router import router_node
 from src.agent.nodes.search import search_node
 from src.agent.state import AgentState
@@ -18,12 +18,21 @@ def build_agent_graph() -> CompiledStateGraph[AgentState, None, AgentState, Agen
         is_relevant = state.get("is_relevant")
         if is_relevant is False:
             return "off_topic"
-        return "relevant"
+        return "search"
 
     def route_search_decision(state: AgentState) -> str:
-        if should_retry(state):
-            return "search"
-        return "respond"
+        evaluation_result = state.get("evaluation_result")
+        if not evaluation_result or not evaluation_result.relevant_ids:
+            return "retry"
+        return "fetch_ids"
+
+    def route_retry_decision(state: AgentState) -> str:
+        retry_count = state.get("retry_count", 0)
+        from src.config import settings
+
+        if retry_count >= settings.agent.max_search_retries:
+            return "off_topic"
+        return "search"
 
     graph = (
         StateGraph(AgentState)
@@ -38,20 +47,27 @@ def build_agent_graph() -> CompiledStateGraph[AgentState, None, AgentState, Agen
             "router",
             route_decision,
             {
-                "relevant": "search",
+                "search": "search",
                 "off_topic": "off_topic",
             },
         )
-        .add_edge("search", "fetch_ids")
+        .add_conditional_edges(
+            "search",
+            route_search_decision,
+            {
+                "fetch_ids": "fetch_ids",
+                "retry": "retry",
+            },
+        )
         .add_edge("fetch_ids", "respond")
         .add_edge("respond", END)
         .add_edge("off_topic", END)
         .add_conditional_edges(
-            "fetch_ids",
-            route_search_decision,
+            "retry",
+            route_retry_decision,
             {
                 "search": "search",
-                "respond": "respond",
+                "off_topic": "off_topic",
             },
         )
         .compile(checkpointer=checkpointer)
