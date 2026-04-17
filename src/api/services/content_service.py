@@ -1,10 +1,24 @@
-from sqlalchemy import select
+from sqlalchemy import asc, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
+from src.api.routes.schemas import SortField, SortOrder
 from src.db.models.content import Content, ContentCreate, ContentUpdate
 
 from .embedding_service import EmbbedingService
+
+SORT_FIELD_MAP: dict[SortField, any] = {
+    SortField.POST_DATE: Content.post_date,
+    SortField.TITLE: Content.title,
+    SortField.CATEGORY: Content.category,
+    SortField.CREATED_AT: Content.created_at,
+    SortField.UPDATED_AT: Content.updated_at,
+}
+
+SORT_ORDER_MAP = {
+    SortOrder.ASC: asc,
+    SortOrder.DESC: desc,
+}
 
 
 class ContentService:
@@ -35,8 +49,17 @@ class ContentService:
         await self.session.refresh(new_content)
         return new_content
 
-    async def get_all_contents(self, limit: int = 50, offset: int = 0) -> list[Content]:
-        query = select(Content).limit(limit).offset(offset)
+    async def get_all_contents(
+        self,
+        limit: int = 50,
+        offset: int = 0,
+        sort_field: SortField = SortField.POST_DATE,
+        sort_order: SortOrder = SortOrder.DESC,
+    ) -> list[Content]:
+        column = SORT_FIELD_MAP[sort_field]
+        order_func = SORT_ORDER_MAP[sort_order]
+
+        query = select(Content).order_by(order_func(column)).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
