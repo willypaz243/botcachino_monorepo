@@ -2,173 +2,98 @@
 
 ## Dev environment
 
-- Python 3.13 via `uv`. Run `uv sync` to install, `uv run python -m <module>` to execute.
-- Frontend (`web/`) uses Bun. `cd web && bun install` first, then `bun run dev` (http://localhost:5173).
-- LangGraph CLI for agent development: `uv run langgraph dev` (runs on port 2024).
+- Python 3.13 via `uv`. Run `uv sync` to install.
+- Frontend (`web/`) uses **TypeScript** (TSX), Vite, and Bun. `cd web && bun install` then `bun run dev` (http://localhost:5173).
+- LangGraph CLI for agent dev: `uv run langgraph dev` (port 2024, requires `docker compose up -d`).
 
 ## Package layout
 
-- `src/api/server.py` — FastAPI app (the real entry point; `main.py` imports and runs it via uvicorn).
-- `src/api/routes/` — Routers (content_router.py, agent_router.py) and query param schemas (schemas.py).
-- `src/api/services/` — Business logic (content_service.py, embedding_service.py).
-- `src/api/dependencies.py` — Dependency injection for services.
-- `src/db/` — SQLModel models and database setup.
-- `src/agent/` — University information agent implementation.
-- `data/` — Seed data files (scholarship.json, news.json, announcements.json).
-- `scripts/seed_data.py` — Script to populate database from data files.
-- `commands.py` — CLI interface for seeding (python commands.py --fill).
-- `web/` — React 19 + Vite frontend (plain JSX, no TypeScript, no tests).
-
-## Semantic Search
-
-- `src/api/services/content_service.py` — `search(query_text, limit, offset)` method performs semantic search using cosine distance (`<=>`).
-- `src/api/routes/content_router.py` — `GET /content/search/` endpoint.
-- `src/api/routes/schemas.py` — `SearchParams` class with `q`, `limit`, `offset` query parameters.
-
-## University Information Agent
-
-### Overview
-
-An AI agent powered by LangGraph that answers questions about the university using semantic search. The agent:
-
-- Classifies user queries to determine if they're related to the university
-- Performs semantic search to find relevant content
-- Evaluates search results to identify truly relevant information
-- Retrieves full content by IDs when relevant content is found
-- Generates informative responses with a maximum of 1024 tokens
-- Streams responses via Server-Sent Events (SSE)
-- Supports conversation threads via `thread_id`
-
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     POST /api/agent/chat                        │
-│                  (StreamingResponse via SSE)                    │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      LANGGRAPH AGENT                            │
-│                                                                 │
-│  ┌──────────────┐    (off-topic)                                │
-│  │   ROUTER     │──────────────────────────────────────────────▶┤ OFF-TOPIC
-│  │  (analizar)  │                                               │
-│  └──────────────┘                                               │
-│         │                                                       │
-│    (relevant)                                                   │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
-│  │   SEARCH     │───▶│ FETCH_IDS    │───▶│   RESPOND    │       │
-│  │  (evaluar)   │    │ (recuperar)  │    │  (generar)   │       │
-│  └──────────────┘    └──────────────┘    └──────────────┘       │
-│         │                                    ▲                  │
-│         │ (reintentar)                       │                  │
-│         └────────────────────────────────────┘                  │
-│                      (hasta 5 intentos)                         │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Agent Components
-
-- `src/agent/config.py` — Configuration for model providers, university name, and limits
-- `src/agent/constants.py` — System prompts and info messages
-- `src/agent/state.py` — LangGraph state schema
-- `src/agent/exceptions.py` — Custom exception classes
-- `src/agent/tools.py` — Semantic search tool definition
-- `src/agent/nodes/` — Individual graph nodes (router, search, off_topic, fetch_ids, respond, retry)
-- `src/agent/graph.py` — LangGraph construction and compilation
-- `src/agent/langgraph_app.py` — LangGraph CLI app entry point
-- `src/agent/agent.py` — High-level agent interface with streaming support
-- `src/agent/streaming.py` — SSE formatting utilities
-- `src/api/routes/agent_router.py` — FastAPI endpoint for agent chat
-- `langgraph.json` — LangGraph CLI configuration
-
-### Configuration
-
-Environment variables (prefix: `AGENT_`):
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `AGENT_UNIVERSITY_NAME` | `"la universidad"` | Name of the university |
-| `AGENT_MODEL__PROVIDER` | `"nebius"` | LLM provider for chat |
-| `AGENT_MODEL__NAME` | `"Qwen/Qwen3-30B-A3B"` | Model name |
-| `AGENT_MODEL__TEMPERATURE` | `0.3` | Model temperature |
-| `AGENT_ROUTER_MODEL__NAME` | `"Qwen/Qwen3-30B-A3B"` | Router model name |
-| `AGENT_ROUTER_MODEL__TEMPERATURE` | `0.1` | Router temperature |
-| `AGENT_MAX_SEARCH_RETRIES` | `5` | Max retry attempts |
-| `AGENT_DEFAULT_SEARCH_LIMIT` | `5` | Default search results limit |
-| `AGENT_MAX_RESPONSE_TOKENS` | `1024` | Max tokens in response |
-
-### API Endpoint
-
-**POST /api/agent/chat**
-
-Query parameters:
-- `message` (required): User message (1-2000 chars)
-- `thread_id` (required): Conversation thread ID (1-100 chars)
-
-Response: Server-Sent Events (SSE) stream
-
-Event format:
-```json
-{
-  "content": "string",
-  "type": "text" | "error" | "info",
-  "done": boolean
-}
-```
-
-Info messages:
-- `"Iniciando conversación..."` — Agent starting
-- `"Analizando consulta..."` — Router analyzing query
-- `"Buscando información..."` — Search in progress
-- `"Evaluando resultados..."` — Evaluating search results
-- `"Recuperando contenido..."` — Fetching content by IDs
-- `"Generando respuesta..."` — Generating final response
-- `"Respuesta completada"` — Response complete
-- `"Reintentando búsqueda..."` — Retrying search
-- `"No encontré información relevante..."` — No relevant content found
+- `src/api/server.py` — FastAPI app with lifespan (creates DB tables on startup). `main.py` just imports and runs it via uvicorn.
+- `src/api/routes/__init__.py` — mounts `content_router`, `agent_router`, `history_router` under `/api`.
+- `src/api/services/` — `content_service.py` (CRUD + semantic search), `embedding_service.py`.
+- `src/api/dependencies.py` — DI for services.
+- `src/db/` — `database.py` (async engine, session maker), `models/` (SQLModel: `content.py`, `history.py`).
+- `src/agent/` — LangGraph university agent. Key files: `graph.py` (graph construction), `agent.py` (high-level interface + streaming), `streaming.py` (SSE formatting), `nodes/` (router, search, off_topic, fetch_ids, respond, retry).
+- `data/` — seed JSON (`scholarship.json`, `news.json`, `announcements.json`).
+- `scripts/seed_data.py` — populates DB from `data/`.
+- `commands.py` — CLI wrapper for seeding (`python commands.py --fill`, `--dry-run`).
+- `web/` — React 19 + TypeScript + Vite. Build runs `tsc --noEmit` before `vite build`.
 
 ## Commands
 
 ```bash
 # Python
 uv sync
-uv run python -m src.api.server    # run API directly
-uv run python main.py              # run via uvicorn on port 8000
+uv run python main.py              # API on port 8000
+uv run uvicorn src.api.server:app --reload --port 8000   # hot-reload
 
-# Agent development with LangGraph CLI
-uv run langgraph dev              # start dev server on port 2024 (http://localhost:2024)
-                                  # requires: docker compose up -d (PostgreSQL running)
-                                  # access Studio: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
+# Agent dev
+uv run langgraph dev               # port 2024, requires docker compose up -d
+                                   # Studio: https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 
-# Seed database
-python command.py --fill           # populate database from data/
+# Seed
+uv run python commands.py --fill
+uv run python commands.py --fill --dry-run
 
-# Frontend
-cd web && bun install
+# Frontend (cd web first)
+bun install
 bun run dev
 bun run build
-bun run lint      # ESLint flat config
+bun run typecheck
+bun run lint
 
-# Database (Docker)
-docker compose up -d       # start PostgreSQL + Adminer
-docker compose down       # stop services
+# Database
+docker compose up -d
+docker compose exec db psql -U postgres -d botcachino
 ```
+
+## Testing
+
+- `pyproject.toml` has `[tool.pytest.ini_options]` with `pythonpath = ["."]`.
+- `tests/` directory exists (`tests/agent/`, `tests/api/`) but no test runner command is defined in `pyproject.toml`. Run `uv run pytest` directly.
+- Dev deps include `pytest`, `pytest-asyncio`.
+
+## API endpoints
+
+- `GET /` — health check
+- `GET /content/` — list all content
+- `GET /content/search/?q=...&limit=5&offset=0` — semantic search (cosine distance via pgvector `<=>`)
+- `GET /content/{id}` — get by ID
+- `POST /content/` — create
+- `PATCH /content/{id}` — update
+- `DELETE /content/{id}` — delete
+- `POST /api/agent/chat?message=...&thread_id=...` — agent chat (SSE stream)
 
 ## Database
 
-- PostgreSQL 16 with `pgvector` extension for vector search support.
-- Default: `postgresql://postgres:postgres@localhost:5432/botcachino`
-- Override with `DATABASE_URL` env var (see `.env.example`).
-- Adminer UI: http://localhost:8080 (server: `db`, user: `postgres`).
+- PostgreSQL 16 + pgvector (4096-dim embeddings).
+- Default: `postgresql+asyncpg://postgres:postgres@localhost:5432/botcachino` (override with `DATABASE_URL`).
+- Adminer: http://localhost:8080 (server: `db`, user: `postgres`, password: `postgres`).
+- Content categories: `INFO`, `NEW`, `SCHOLARSH`, `ANN`.
 
-## Conventions
+## Agent configuration
 
-- ESLint rule `varsIgnorePattern: '^[A-Z_]'` — uppercase-prefixed vars are allowed as unused (e.g., `const _unused = ...`).
+Env vars prefixed `AGENT_`:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AGENT_UNIVERSITY_NAME` | `"la universidad"` | University name |
+| `AGENT_MODEL__PROVIDER` | `"nebius"` | LLM provider |
+| `AGENT_MODEL__NAME` | `"Qwen/Qwen3-30B-A3B"` | Model name |
+| `AGENT_MODEL__TEMPERATURE` | `0.3` | Model temperature |
+| `AGENT_ROUTER_MODEL__NAME` | `"Qwen/Qwen3-30B-A3B"` | Router model |
+| `AGENT_ROUTER_MODEL__TEMPERATURE` | `0.1` | Router temperature |
+| `AGENT_MAX_SEARCH_RETRIES` | `5` | Max search retries |
+| `AGENT_DEFAULT_SEARCH_LIMIT` | `5` | Default search limit |
+| `AGENT_MAX_RESPONSE_TOKENS` | `1024` | Max response tokens |
+
+Agent SSE event types: `text`, `error`, `info`. Info messages include `"Iniciando conversación..."`, `"Analizando consulta..."`, `"Buscando información..."`, `"Evaluando resultados..."`, `"Recuperando contenido..."`, `"Generando respuesta..."`, `"Respuesta completada"`, `"Reintentando búsqueda..."`, `"No encontré información relevante..."`.
+
+## Gotchas
+
+- `commands.py` (plural) — not `command.py`.
 - `pyproject.toml` requires `>=3.13`. Do not add deps pinned to older Python.
-- No test framework, no lint tooling, no pre-commit hooks yet.
-- `.venv/` is gitignored but present locally.
-- Content categories: INFO, NEW, SCHOLARSH, ANN.
+- `web/` uses TypeScript (TSX), not plain JSX. ESLint flat config in `eslint.config.ts`.
+- `uv run` is required for all Python commands (no system Python).
+- DB tables are auto-created on FastAPI startup via lifespan hook.
+- `langgraph.json` references `./src/agent/langgraph_app.py:graph` as the graph entry point.

@@ -34,19 +34,26 @@ Instrucciones:
 
 Responde ÚNICAMENTE con la consulta reformulada, sin explicaciones."""
 
-ROUTER_SYSTEM_PROMPT = """Eres un asistente de información de {university}.
-Tu tarea es clasificar si la consulta del usuario es relevante para la universidad.
+ROUTER_SYSTEM_PROMPT = """Eres el router de un asistente de información de {university}.
+Tu tarea es decidir si la consulta del usuario debe enviarse al motor de búsqueda de contenido universitario.
+
+Regla principal: CUALQUIER consulta relacionada con la universidad debe ir a búsqueda (search).
+Solo las consultas completamente ajenas a la universidad van a off_topic.
 
 Responde ÚNICAMENTE con JSON:
-{{"classification": "relevant" | "off_topic", "reason": "greeting" | "capabilities" | "not_related" | null}}
+{{"classification": "search" | "off_topic", "reason": "greeting" | "capabilities" | "not_related" | null}}
 
-Razones para classification "off_topic":
-- "greeting": Si es un saludo o presentación (ej: "hola", "buenos días", "¿cómo estás?")
-- "capabilities": Si pregunta sobre qué puede hacer el asistente (ej: "¿qué puedes hacer?", "¿quién eres?")
-- "not_related": Si no tiene relación con {university} y no es greeting ni capabilities
+"search" (ir a búsqueda):
+- Cualquier pregunta sobre la universidad: cursos, admisiones, actividades, noticias, becas, horarios, profesores, eventos, anuncios, campus, trámites, requisitos, etc.
+- Consultas de seguimiento sobre temas universitarios (ej: "¿y el segundo?", "más sobre eso", "el que mencionaste antes")
+- Preguntas sobre cualquier tema relacionado con la vida universitaria
 
-Classification "relevant":
-- Si es sobre cualquier tema de la universidad (cursos, admisiones, actividades, noticias, becas, horarios, profesores, eventos, anuncios, etc)
+"off_topic" (no ir a búsqueda):
+- "greeting": Saludos o presentaciones (ej: "hola", "buenos días", "¿cómo estás?")
+- "capabilities": Preguntas sobre qué puede hacer el asistente (ej: "¿qué puedes hacer?", "¿quién eres?")
+- "not_related": Temas completamente ajenos a la universidad (ej: recetas, deportes de otros equipos, política nacional, etc.)
+
+Si hay duda entre "search" y "off_topic", elige "search".
 
 Responde SOLO con JSON, sin texto adicional.
 """
