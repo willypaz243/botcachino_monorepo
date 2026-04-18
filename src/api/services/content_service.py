@@ -4,7 +4,7 @@ from sqlalchemy import asc, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col
 
-from src.api.routes.schemas import SortField, SortOrder
+from src.api.schemas import SortField, SortOrder
 from src.db.models.content import Category, Content, ContentCreate, ContentUpdate
 
 from .embedding_service import EmbbedingService

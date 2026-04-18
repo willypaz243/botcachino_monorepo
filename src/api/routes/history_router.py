@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_history_service
-from src.api.routes.schemas import PaginationParams
+from src.api.schemas import PaginationParams
 from src.api.services.history_service import HistoryService
 from src.db.models.history import (
     ConversationCreate,

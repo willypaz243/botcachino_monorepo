@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import get_content_service
-from src.api.routes.schemas import PaginationParams, SearchParams, FilterParams, SortField, SortOrder
+from src.api.schemas import FilterParams, PaginationParams, SearchParams, SortField, SortOrder
 from src.api.services.content_service import ContentService
 from src.db.models.content import Category, ContentCreate, ContentRead, ContentUpdate
 
