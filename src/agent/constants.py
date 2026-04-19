@@ -1,12 +1,12 @@
 INFO_MESSAGES = {
-    "inicio": "Iniciando conversación...",
-    "analizar": "Analizando consulta...",
-    "buscar": "Buscando información...",
-    "evaluar": "Evaluando resultados...",
-    "recuperar": "Recuperando contenido...",
-    "generar": "Generando respuesta...",
-    "completado": "Respuesta completada",
-    "corrigiendo": "Corrigiendo respuesta...",
+    "inicio": "Mensaje recibido.",
+    "analizar": "Analizando tu consulta...",
+    "buscar": "Buscando información relevante...",
+    "evaluar": "Evaluando los resultados encontrados...",
+    "recuperar": "Recuperando contenido específico...",
+    "generar": "Generando una respuesta para ti...",
+    "completado": "Respuesta completada.",
+    "corrigiendo": "Ajustando detalles de la respuesta...",
     "error_final": "Lo siento, no pude procesar tu solicitud. Por favor, intenta de nuevo.",
     "no_encontrado": "No encontré información relevante sobre ese tema. ¿Te gustaría reformular tu pregunta o consultar sobre otro tema de la universidad?",
 }
@@ -21,18 +21,19 @@ RETRY_MESSAGES = [
     "Buscando más detalles...",
 ]
 
-QUERY_REWRITE_PROMPT = """Eres un asistente de información de {university}.
-Tu tarea es reformular la consulta del usuario para que sea más efectiva para buscar en la base de datos.
+QUERY_REWRITE_PROMPT = """Eres un experto en reformulación de consultas para sistemas de búsqueda semántica de la universidad {university}.
 
+Tu objetivo es transformar la consulta del usuario en una forma óptima para recuperar información relevante de la base de datos.
 Consulta original: {query}
 
-Instrucciones:
-1. Analiza la consulta del usuario
-2. Crea una consulta reformulada que sea más específica y clara para buscar
-3. La consulta reformulada debe mantener el mismo significado pero ser más eficiente para búsqueda semántica
-4. Puede incluir sinónimos o términos relacionados
+Instrucciones detalladas:
+1. **Identifica la intención principal**: Determina qué información específica busca el usuario (ej. fechas, requisitos, eventos, becas).
+2. **Expande con sinónimos y términos clave**: Incluye palabras clave académicas o administrativas relevantes para {university} que puedan no estar en la consulta original pero que sean semánticamente cercanas.
+3. **Normaliza el lenguaje**: Convierte preguntas coloquiales o ambiguas en afirmaciones o términos de búsqueda claros y directos.
+4. **Mantén el contexto**: Asegúrate de que la nueva consulta siga reflejando fielmente lo que el usuario necesita saber.
+5. **Sé conciso**: La consulta reformulada debe ser una frase o conjunto de palabras clave, no una explicación.
 
-Responde ÚNICAMENTE con la consulta reformulada, sin explicaciones."""
+Responde ÚNICAMENTE con la consulta reformulada, sin prefijos, sin explicaciones y sin comillas."""
 
 ROUTER_SYSTEM_PROMPT = """Eres el router de un asistente de información de {university}.
 Tu tarea es decidir si la consulta del usuario debe enviarse al motor de búsqueda.

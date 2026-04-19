@@ -78,7 +78,10 @@ class UniversityAgent:
                             elif node_name == "respond":
                                 yield {"event": "info", "content": INFO_MESSAGES["generar"]}
                             elif node_name == "retry":
-                                retry_count = getattr(node_state, "retry_count", 0)  # type: ignore[attr-defined]
+                                retry_count = 0
+                                if isinstance(node_state, dict):
+                                    search_context = node_state.get("search", {})
+                                    retry_count = getattr(search_context, "retry_count", 0)
                                 message_index = min(retry_count, len(RETRY_MESSAGES) - 1)
                                 yield {
                                     "event": "info",
