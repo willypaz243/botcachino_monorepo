@@ -25,6 +25,7 @@ async def seed_data():
             "scholarship.json": Category.SCHOLARSH,
             "news.json": Category.NEW,
             "announcements.json": Category.ANN,
+            "informations.json": Category.INFO,
         }
 
         for filename in os.listdir(data_dir):
