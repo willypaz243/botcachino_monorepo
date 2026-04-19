@@ -1,44 +1,42 @@
 from typing import Any
 
-from src.agent.state import AgentState, EvaluationResult
+from src.agent.state import AgentState, EvaluationContext
 from src.config import settings
 
 
 async def evaluation_node(state: AgentState) -> dict[str, Any]:
     """Evalúa si los resultados son suficientes para responder"""
 
-    evaluation_result = state.get("evaluation_result")
-    if not evaluation_result:
-        return {"evaluation_result": EvaluationResult(relevant_ids=[])}
-
-    relevant_ids = evaluation_result.relevant_ids
-    limit = settings.agent.default_search_limit
+    evaluation = state.get("evaluation")
+    if not evaluation:
+        return {"evaluation": EvaluationContext(relevant_ids=[])}
 
     return {
-        "evaluation_result": evaluation_result,
+        "evaluation": evaluation,
     }
 
 
 def should_fetch_ids(state: AgentState) -> bool:
     """Determina si hay suficientes IDs relevantes para fetch_ids"""
-    evaluation_result = state.get("evaluation_result")
-    if not evaluation_result:
+    evaluation = state.get("evaluation")
+    if not evaluation:
         return False
 
-    relevant_ids = evaluation_result.relevant_ids
+    relevant_ids = evaluation.relevant_ids
     return len(relevant_ids) > 0
 
 
 def should_retry_search(state: AgentState) -> bool:
     """Determina si se debe hacer retry de búsqueda"""
-    evaluation_result = state.get("evaluation_result")
-    retry_count = state.get("retry_count", 0)
+    evaluation = state.get("evaluation")
+    search_ctx = state.get("search")
+    retry_count = search_ctx.retry_count if search_ctx else 0
 
     if retry_count >= settings.agent.max_search_retries:
         return False
 
-    if not evaluation_result:
+    if not evaluation:
         return True
 
-    relevant_ids = evaluation_result.relevant_ids
+    relevant_ids = evaluation.relevant_ids
     return len(relevant_ids) == 0

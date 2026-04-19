@@ -17,7 +17,7 @@ class AgentConfig(BaseModel):
 
     university_name: str = "la universidad"
     max_search_retries: int = 5
-    default_search_limit: int = 5
+    default_search_limit: int = 20
     max_response_tokens: int = 1024
 
     model: ModelConfig

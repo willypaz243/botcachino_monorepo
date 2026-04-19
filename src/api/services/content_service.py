@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import asc, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +10,7 @@ from src.db.models.content import Category, Content, ContentCreate, ContentUpdat
 
 from .embedding_service import EmbbedingService
 
-SORT_FIELD_MAP: dict[SortField, any] = {
+SORT_FIELD_MAP: dict[SortField, Any] = {
     SortField.POST_DATE: Content.post_date,
     SortField.TITLE: Content.title,
     SortField.CATEGORY: Content.category,
@@ -67,17 +68,17 @@ class ContentService:
         query = select(Content)
 
         if categories:
-            query = query.where(Content.category.in_(categories))
+            query = query.where(col(Content.category).in_(categories))
         if start_date:
-            query = query.where(Content.post_date >= start_date)
+            query = query.where(col(Content.post_date) >= start_date)
         if end_date:
-            query = query.where(Content.post_date <= end_date)
+            query = query.where(col(Content.post_date) <= end_date)
         if title_contains:
-            query = query.where(Content.title.ilike(f"%{title_contains}%"))
+            query = query.where(col(Content.title).ilike(f"%{title_contains}%"))
         if summary_contains:
-            query = query.where(Content.summary.ilike(f"%{summary_contains}%"))
+            query = query.where(col(Content.summary).ilike(f"%{summary_contains}%"))
         if content_contains:
-            query = query.where(Content.content.ilike(f"%{content_contains}%"))
+            query = query.where(col(Content.content).ilike(f"%{content_contains}%"))
 
         column = SORT_FIELD_MAP[sort_field]
         order_func = SORT_ORDER_MAP[sort_order]
@@ -124,7 +125,7 @@ class ContentService:
     async def search(
         self,
         query_text: str,
-        limit: int = 5,
+        limit: int = 20,
         offset: int = 0,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
@@ -140,8 +141,7 @@ class ContentService:
             query = query.where(col(Content.post_date) <= end_date)
 
         query = (
-            query
-            .order_by(col(Content.embedding).op("<=>")(query_embedding))
+            query.order_by(col(Content.embedding).op("<=>")(query_embedding))
             .limit(limit)
             .offset(offset)
         )
@@ -159,11 +159,15 @@ class ContentService:
         return contents
 
     def format_content_for_agent(self, content: Content) -> dict:
+        import re
+
+        cleaned_content = re.sub(r"!\[.*?\]\(.*?\)", "[imagen]", content.content)
+
         return {
             "id": content.id,
             "title": content.title,
             "category": content.category.value,
-            "content": content.content,
+            "content": cleaned_content,
             "post_date": content.post_date.isoformat() if content.post_date else None,
         }
 

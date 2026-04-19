@@ -1,4 +1,5 @@
 import logging
+import traceback
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -9,7 +10,7 @@ from langgraph.graph.state import CompiledStateGraph
 from src.agent.constants import INFO_MESSAGES, RETRY_MESSAGES
 from src.agent.graph import build_agent_graph
 from src.agent.services import AgentServices
-from src.agent.state import AgentState
+from src.agent.state import AgentState, ResponseContext, SearchContext
 from src.api.services.content_service import ContentService
 
 logger = logging.getLogger(__name__)
@@ -36,9 +37,7 @@ class UniversityAgent:
 
         input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
-            "retry_count": 0,
-            "visited_ids": [],
-            "invalid_ids": [],
+            "search": SearchContext(retry_count=0, excluded_ids=set()),
         }
 
         yield {"event": "info", "content": INFO_MESSAGES["inicio"]}
@@ -79,21 +78,18 @@ class UniversityAgent:
                             elif node_name == "respond":
                                 yield {"event": "info", "content": INFO_MESSAGES["generar"]}
                             elif node_name == "retry":
-                                retry_count = (
-                                    node_state.get("retry_count", 0)
-                                    if isinstance(node_state, dict)
-                                    else 0
-                                )
+                                retry_count = getattr(node_state, "retry_count", 0)  # type: ignore[attr-defined]
                                 message_index = min(retry_count, len(RETRY_MESSAGES) - 1)
                                 yield {
                                     "event": "info",
                                     "content": RETRY_MESSAGES[message_index],
                                 }
 
-        except Exception as e:
+        except Exception:
+            traceback.print_exc()
             yield {
                 "event": "error",
-                "content": f"Error inesperado: {str(e)}",
+                "content": "Error inesperado",
             }
 
         yield {"event": "done", "content": ""}
@@ -104,14 +100,13 @@ class UniversityAgent:
 
         input_data: AgentState = {
             "messages": [HumanMessage(content=message)],
-            "retry_count": 0,
-            "visited_ids": [],
-            "invalid_ids": [],
+            "search": SearchContext(retry_count=0, excluded_ids=set()),
         }
 
         result = await graph.ainvoke(input_data, config)
 
+        response_ctx = result.get("response") or ResponseContext()
         return {
-            "response": result.get("response", ""),
-            "sources": result.get("sources", []),
+            "response": response_ctx.response or "",
+            "sources": response_ctx.sources or [],
         }

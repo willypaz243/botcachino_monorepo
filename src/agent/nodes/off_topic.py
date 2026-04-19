@@ -7,7 +7,8 @@ from src.agent.constants import (
     OFFTOPIC_GREETING_PROMPT,
     OFFTOPIC_NOT_RELATED_PROMPT,
 )
-from src.agent.state import AgentState
+from src.agent.model_factory import get_chat_model
+from src.agent.state import AgentState, ResponseContext, RoutingResult
 from src.config import settings
 from src.db.models.content import Category
 
@@ -26,15 +27,16 @@ def _get_categories_string() -> str:
 
 
 async def off_topic_node(state: AgentState) -> dict[str, Any]:
-    from langchain_nebius import ChatNebius
+    routing = state.get("routing") or RoutingResult(is_relevant=False)
+    reason = routing.reason or "not_related"
 
-    llm = ChatNebius(
-        model=settings.agent.model.name,
-        api_key=settings.agent.router_model.api_key,
+    llm = get_chat_model(
+        provider=settings.agent.model.provider,
+        model_name=settings.agent.model.name,
         temperature=settings.agent.model.temperature,
+        api_key=settings.agent.model.api_key,
     )
 
-    reason = state.get("off_topic_reason", "not_related")
     university = settings.agent.university_name
     categories = _get_categories_string()
 
@@ -52,10 +54,16 @@ async def off_topic_node(state: AgentState) -> dict[str, Any]:
         )
 
     messages = [SystemMessage(content=system_prompt)]
-
     response = await llm.ainvoke(messages)
 
+    content = response.content
+    if isinstance(content, list):
+        content = "\n".join(str(c) for c in content if isinstance(c, str))
+
+    response_ctx = state.get("response") or ResponseContext()
     return {
-        "response": response.content,
-        "is_relevant": False,
+        "response": ResponseContext(
+            response=content, relevant_contents=response_ctx.relevant_contents
+        ),
+        "routing": RoutingResult(is_relevant=False),
     }

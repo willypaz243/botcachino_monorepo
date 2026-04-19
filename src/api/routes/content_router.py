@@ -56,7 +56,11 @@ async def search_content(
     content_service: ContentService = Depends(get_content_service),
 ):
     return await content_service.search(
-        q, limit, offset, start_date=start_date, end_date=end_date,
+        q,
+        limit,
+        offset,
+        start_date=start_date,
+        end_date=end_date,
     )
 
 
