@@ -3,25 +3,19 @@ from typing import Any
 from langchain_core.messages import SystemMessage
 
 from src.agent.constants import INFO_MESSAGES, RESPOND_SYSTEM_PROMPT
-from src.agent.state import AgentState
+from src.agent.model_factory import get_chat_model
+from src.agent.state import AgentState, ResponseContext, SearchContext
 from src.config import settings
 
 
 async def respond_node(state: AgentState) -> dict[str, Any]:
-    from langchain_nebius import ChatNebius
-
-    llm = ChatNebius(
-        model=settings.agent.model.name,
-        api_key=settings.agent.router_model.api_key,
-        temperature=settings.agent.model.temperature,
-    )
-
-    relevant_contents = state.get("relevant_contents", [])
+    response_ctx = state.get("response") or ResponseContext()
+    relevant_contents = response_ctx.relevant_contents
 
     if not relevant_contents:
         return {
-            "response": INFO_MESSAGES["no_encontrado"],
-            "sources": [],
+            "response": ResponseContext(response=INFO_MESSAGES["no_encontrado"]),
+            "search": SearchContext(),
         }
 
     context_parts: list[str] = []
@@ -45,6 +39,13 @@ async def respond_node(state: AgentState) -> dict[str, Any]:
 
     context = "\n\n---\n\n".join(context_parts)
 
+    llm = get_chat_model(
+        provider=settings.agent.model.provider,
+        model_name=settings.agent.model.name,
+        temperature=settings.agent.model.temperature,
+        api_key=settings.agent.model.api_key,
+    )
+
     messages = [
         SystemMessage(
             content=RESPOND_SYSTEM_PROMPT.format(
@@ -62,8 +63,8 @@ async def respond_node(state: AgentState) -> dict[str, Any]:
             full_response += chunk.content
 
     return {
-        "response": full_response,
-        "sources": sources,
-        "visited_ids": [],
-        "invalid_ids": [],
+        "response": ResponseContext(
+            response=full_response, sources=sources, relevant_contents=relevant_contents
+        ),
+        "search": SearchContext(),
     }

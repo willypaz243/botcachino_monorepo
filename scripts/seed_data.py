@@ -53,7 +53,9 @@ async def seed_data():
                     title = item.get("title", "").strip() if item.get("title") else ""
                     summary = item.get("summary", "").strip() if item.get("summary") else ""
                     content = item.get("content", "").strip() if item.get("content") else ""
-                    post_date_str = item.get("post_date", "").strip() if item.get("post_date") else ""
+                    post_date_str = (
+                        item.get("post_date", "").strip() if item.get("post_date") else ""
+                    )
 
                     if not title or not summary or not content or not post_date_str:
                         print(f"Ignoring item with missing fields: {title[:30]}")

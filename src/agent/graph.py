@@ -15,19 +15,29 @@ def build_agent_graph() -> CompiledStateGraph[AgentState, None, AgentState, Agen
     checkpointer = InMemorySaver()
 
     def route_decision(state: AgentState) -> str:
-        is_relevant = state.get("is_relevant")
-        if is_relevant is False:
+        routing = state.get("routing")
+
+        if routing and not routing.is_relevant:
             return "off_topic"
+
+        response = state.get("response")
+        if response and response.relevant_contents:
+            if routing and routing.cached_content_useful is True:
+                return "respond"
+            if routing and routing.cached_content_useful is False:
+                return "search"
+
         return "search"
 
     def route_search_decision(state: AgentState) -> str:
-        evaluation_result = state.get("evaluation_result")
-        if not evaluation_result or not evaluation_result.relevant_ids:
+        evaluation = state.get("evaluation")
+        if not evaluation or not evaluation.relevant_ids:
             return "retry"
         return "fetch_ids"
 
     def route_retry_decision(state: AgentState) -> str:
-        retry_count = state.get("retry_count", 0)
+        search = state.get("search")
+        retry_count = search.retry_count if search else 0
         from src.config import settings
 
         if retry_count >= settings.agent.max_search_retries:
@@ -49,6 +59,7 @@ def build_agent_graph() -> CompiledStateGraph[AgentState, None, AgentState, Agen
             {
                 "search": "search",
                 "off_topic": "off_topic",
+                "respond": "respond",
             },
         )
         .add_conditional_edges(

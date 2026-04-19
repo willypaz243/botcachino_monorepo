@@ -24,7 +24,7 @@ class MessageBase(SQLModel):
 
 
 class Message(MessageBase, table=True):
-    __tablename__ = "messages"
+    __tablename__ = "messages"  # type: ignore
 
     uuid: UUID = Field(default_factory=uuid4, primary_key=True, index=True, nullable=False)
     conversation_uuid: UUID = Field(foreign_key="conversations.uuid", index=True)
@@ -50,7 +50,7 @@ class ConversationBase(SQLModel):
 
 
 class Conversation(ConversationBase, table=True):
-    __tablename__ = "conversations"
+    __tablename__ = "conversations"  # type: ignore
 
     uuid: UUID = Field(default_factory=uuid4, primary_key=True, index=True, nullable=False)
 

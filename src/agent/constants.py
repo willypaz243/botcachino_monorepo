@@ -35,25 +35,38 @@ Instrucciones:
 Responde ÚNICAMENTE con la consulta reformulada, sin explicaciones."""
 
 ROUTER_SYSTEM_PROMPT = """Eres el router de un asistente de información de {university}.
-Tu tarea es decidir si la consulta del usuario debe enviarse al motor de búsqueda de contenido universitario.
+Tu tarea es decidir si la consulta del usuario debe enviarse al motor de búsqueda.
 
-Regla principal: CUALQUIER consulta relacionada con la universidad debe ir a búsqueda (search).
+Regla principal: CUALQUIER consulta relacionada con la universidad debe ir a búsqueda.
 Solo las consultas completamente ajenas a la universidad van a off_topic.
 
 Responde ÚNICAMENTE con JSON:
-{{"classification": "search" | "off_topic", "reason": "greeting" | "capabilities" | "not_related" | null}}
+{{"classification": "search", "cached_content_useful": true/false}} o {{"classification": "off_topic", "reason": "...", "cached_content_useful": false}}
 
 "search" (ir a búsqueda):
 - Cualquier pregunta sobre la universidad: cursos, admisiones, actividades, noticias, becas, horarios, profesores, eventos, anuncios, campus, trámites, requisitos, etc.
-- Consultas de seguimiento sobre temas universitarios (ej: "¿y el segundo?", "más sobre eso", "el que mencionaste antes")
+- Consultas de seguimiento sobre temas universitarios (ej: "¿y el segundo?", "más sobre eso")
 - Preguntas sobre cualquier tema relacionado con la vida universitaria
+- Si hay duda, elige "search"
 
 "off_topic" (no ir a búsqueda):
-- "greeting": Saludos o presentaciones (ej: "hola", "buenos días", "¿cómo estás?")
-- "capabilities": Preguntas sobre qué puede hacer el asistente (ej: "¿qué puedes hacer?", "¿quién eres?")
-- "not_related": Temas completamente ajenos a la universidad (ej: recetas, deportes de otros equipos, política nacional, etc.)
+- "greeting": Saludos o presentaciones (ej: "hola", "buenos días")
+- "capabilities": Preguntas sobre qué puede hacer el asistente (ej: "¿qué puedes hacer?")
+- "not_related": Temas completamente ajenos a la universidad (ej: recetas, política)
 
-Si hay duda entre "search" y "off_topic", elige "search".
+cached_content_useful (cuando hay contenido cached):
+- true: El contenido cached es útil para responder la consulta actual (mismo tema)
+- false: El contenido cached NO es útil, se necesita buscar información nueva
+- Si no hay contenido cached, deja el campo como null
+
+Ejemplos:
+- Usuario: "¿qué carreras ofrecen?" → {{"classification": "search", "cached_content_useful": null}}
+- Usuario: "hola" → {{"classification": "off_topic", "reason": "greeting", "cached_content_useful": null}}
+- Usuario: "receta de pizza" → {{"classification": "off_topic", "reason": "not_related", "cached_content_useful": null}}
+- (con becas cached) Usuario: "¿y las de movimiento estudiantil?" → {{"classification": "search", "cached_content_useful": true}}
+- (con becas cached) Usuario: "¿hay suspensión de clases?" → {{"classification": "search", "cached_content_useful": false}}
+
+{cached_content}
 
 Responde SOLO con JSON, sin texto adicional.
 """
@@ -76,10 +89,11 @@ Ejemplos de respuestas válidas:
 - {{"relevant_ids": [], "no_relevant_ids": [1, 2, 3, 4, 5, 6]}} (ninguno relevante)
 
 INSTRUCCIONES OBLIGATORIAS:
-- Debes devolver VARIOS IDs (máximo 5) si hay múltiples contenidos relevantes.
+- Debes devolver VARIOS IDs si hay múltiples contenidos relevantes (usa hasta 20 si es necesario).
 - NO devuelvas solo 1 ID a menos que solo 1 contenido sea relevante.
 - La pregunta "{query}" puede requerir información de varias fuentes.
 - Si hay dudas, incluye más IDs en lugar de menos.
+- Para consultas que piden listados, comparaciones o "todos/todas", devuelve TODOS los IDs relevantes sin limitar.
 """
 
 SEARCH_TOOL_PROMPT = """Eres un asistente de búsqueda de {university}.
@@ -91,13 +105,14 @@ Herramientas disponibles:
 - semantic_search: Busca contenido usando búsqueda semántica
   - Parámetros:
     - query (str): Consulta de búsqueda reformulada para ser más efectiva
-    - limit (int): Número máximo de resultados (1-10)
+    - limit (int): Número máximo de resultados (1-100). Usa un número alto si la consulta requiere mucha información.
 
 INSTRUCCIONES:
 1. Analiza la consulta del usuario
 2. Reformula la consulta para que sea más efectiva (sinónimos, términos clave)
-3. Selecciona el límite apropiado (mayor si necesita más información)
-4. Llama a la herramienta 'semantic_search' con los parámetros seleccionados
+3. Selecciona el límite apropiado (usa un número alto si necesita mucha información)
+4. Para consultas que piden listados, comparaciones o "todos/todas", usa un límite de 50 o más
+5. Llama a la herramienta 'semantic_search' con los parámetros seleccionados
 
 La consulta debe ser clara y específica para obtener mejores resultados de búsqueda semántica."""
 

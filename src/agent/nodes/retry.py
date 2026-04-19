@@ -1,26 +1,24 @@
 from typing import Any
 
 from src.agent.constants import INFO_MESSAGES
-from src.agent.state import AgentState
+from src.agent.state import AgentState, ResponseContext, SearchContext
 from src.config import settings
 
 
 async def retry_node(state: AgentState) -> dict[str, Any]:
-    retry_count = state.get("retry_count", 0) + 1
-
-    invalid_ids = list(state.get("invalid_ids", []) or [])
+    search_ctx = state.get("search") or SearchContext()
+    retry_count = search_ctx.retry_count + 1
 
     if retry_count >= settings.agent.max_search_retries:
+        response_ctx = state.get("response") or ResponseContext()
         return {
-            "response": INFO_MESSAGES["no_encontrado"],
-            "retry_count": retry_count,
-            "visited_ids": [],
-            "invalid_ids": [],
+            "response": ResponseContext(
+                response=INFO_MESSAGES["no_encontrado"],
+                relevant_contents=response_ctx.relevant_contents,
+            ),
+            "search": SearchContext(retry_count=retry_count),
         }
 
-    return {"retry_count": retry_count, "invalid_ids": invalid_ids}
-
-
-def should_retry(state: AgentState) -> bool:
-    retry_count = state.get("retry_count", 0)
-    return retry_count < settings.agent.max_search_retries
+    return {
+        "search": SearchContext(retry_count=retry_count, excluded_ids=set(search_ctx.excluded_ids))
+    }

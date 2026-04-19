@@ -1,7 +1,8 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import col
 
 from src.db.models.history import (
     Conversation,
@@ -10,6 +11,8 @@ from src.db.models.history import (
     Message,
     MessageCreate,
 )
+
+
 class HistoryService:
     def __init__(self, session: AsyncSession):
         self.__session = session
@@ -25,9 +28,7 @@ class HistoryService:
         await self.session.refresh(new_conversation)
         return new_conversation
 
-    async def get_all_conversations(
-        self, limit: int = 50, offset: int = 0
-    ) -> list[Conversation]:
+    async def get_all_conversations(self, limit: int = 50, offset: int = 0) -> list[Conversation]:
         query = select(Conversation).limit(limit).offset(offset)
         result = await self.session.execute(query)
         return list(result.scalars().all())
@@ -68,7 +69,7 @@ class HistoryService:
 
         new_message = Message(
             **message_in.model_dump(),
-            conversation_uuid=conversation_uuid,
+            conversation_uuid=UUID(conversation_uuid),
         )
         self.session.add(new_message)
         await self.session.commit()
@@ -80,8 +81,8 @@ class HistoryService:
     ) -> list[Message]:
         query = (
             select(Message)
-            .where(Message.conversation_uuid == conversation_uuid)
-            .order_by(Message.timestamp)
+            .where(col(Message.conversation_uuid) == UUID(conversation_uuid))  # type: ignore[arg-type]
+            .order_by(col(Message.timestamp))  # type: ignore[arg-type]
             .limit(limit)
             .offset(offset)
         )
@@ -104,7 +105,7 @@ class HistoryService:
         if not conversation:
             return False
 
-        query = select(Message).where(Message.conversation_uuid == conversation_uuid)
+        query = select(Message).where(col(Message.conversation_uuid) == UUID(conversation_uuid))  # type: ignore[arg-type]
         result = await self.session.execute(query)
         messages = result.scalars().all()
 
