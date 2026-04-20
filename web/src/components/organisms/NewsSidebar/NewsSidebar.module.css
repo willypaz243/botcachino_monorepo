@@ -1,0 +1,222 @@
+/* ===== NEWS SIDEBAR BASE ===== */
+.newsSidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 260px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 20;
+  transform: translateX(0);
+  transition: transform var(--transition-normal);
+}
+
+.newsSidebar--collapsed {
+  transform: translateX(100%);
+}
+
+/* ===== NEWS SIDEBAR TOGGLE ===== */
+.newsSidebarToggle {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 21;
+  background: var(--bg-surface-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.newsSidebarToggle:hover {
+  background: var(--bg-surface-hover);
+}
+
+/* ===== NEWS SIDEBAR HEADER ===== */
+.newsSidebarHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 16px 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.newsSidebarHeaderCenter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* ===== NEWS SIDEBAR TITLE ===== */
+.newsSidebarTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ===== NEWS SIDEBAR BADGE ===== */
+.newsSidebarBadge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+}
+
+/* ===== NEWS SIDEBAR CLOSE ===== */
+.newsSidebarClose {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.newsSidebarClose:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+/* ===== NEWS SIDEBAR LIST ===== */
+.newsSidebarList {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ===== NEWS SIDEBAR ITEM ===== */
+.newsSidebarItem {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: linear-gradient(
+    145deg,
+    var(--bg-surface),
+    var(--bg-secondary)
+  );
+  transition: all var(--transition-normal);
+}
+
+.newsSidebarItem:hover {
+  transform: translateX(-3px) scale(1.01);
+  border-color: var(--accent-border);
+}
+
+/* ===== NEWS SIDEBAR ITEM TOP ===== */
+.newsSidebarItemTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== NEWS SIDEBAR EMOJI ===== */
+.newsSidebarEmoji {
+  font-size: 14px;
+}
+
+/* ===== NEWS SIDEBAR CATEGORY ===== */
+.newsSidebarCategory {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ===== NEWS SIDEBAR TITLE TEXT ===== */
+.newsSidebarTitleText {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ===== NEWS SIDEBAR CTA ===== */
+.newsSidebarCta {
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.newsSidebarItem:hover .newsSidebarCta {
+  color: var(--accent);
+}
+
+/* ===== NEWS SIDEBAR OVERLAY ===== */
+.newsSidebarOverlay {
+  display: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .newsSidebar {
+    width: 70%;
+  }
+
+  .newsSidebarOverlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 19;
+  }
+
+  .newsSidebarTitleText {
+    font-size: 15px;
+  }
+
+  .newsSidebarCategory {
+    font-size: 11px;
+  }
+
+  .newsSidebarCta {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 769px) {
+  .newsSidebar:not(.newsSidebar--collapsed) ~ .newsSidebarToggle {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .newsSidebar {
+    width: 85%;
+    max-width: 340px;
+    padding-top: 8px;
+  }
+
+  .newsSidebarList {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .newsSidebarItem {
+    padding: 20px;
+  }
+}

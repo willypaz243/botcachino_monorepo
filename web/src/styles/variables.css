@@ -1,0 +1,33 @@
+/* ============================================
+   UI VARIABLES - Combinaciones Predefinidas
+   ============================================ */
+
+:root {
+  /* ===== BOTONES ===== */
+  --btn-bg: var(--color-primary);
+  --btn-bg-hover: var(--color-primary-hover);
+  --btn-bg-active: var(--color-primary-active);
+  --btn-text-color: var(--color-text-primary);
+  
+  /* ===== INPUTS ===== */
+  --input-bg: var(--color-surface);
+  --input-border: var(--border-default);
+  --input-border-focus: var(--color-accent-border);
+  --input-ring-focus: var(--color-accent-glow);
+  --input-text-color: var(--color-text-primary);
+  --input-placeholder-color: var(--color-text-muted);
+  
+  /* ===== CARDS ===== */
+  --card-bg: var(--color-surface);
+  --card-border: var(--border-subtle);
+  --card-shadow: var(--shadow-md);
+  
+  /* ===== MODALS/POPUPS ===== */
+  --modal-bg: var(--color-surface-elevated);
+  --modal-border: var(--border-strong);
+  
+  /* ===== BADGES ===== */
+  --badge-bg: var(--color-accent-dim);
+  --badge-border: var(--color-accent-border);
+  --badge-text-color: var(--color-text-accent);
+}

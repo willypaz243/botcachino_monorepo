@@ -1,0 +1,71 @@
+/* ===== BUTTON BASE ===== */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== BUTTON PRIMARY ===== */
+.button--primary {
+  background: var(--color-primary);
+  color: var(--color-text-primary);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.button--primary:active:not(:disabled) {
+  background: var(--color-primary-active);
+}
+
+/* ===== BUTTON SECONDARY ===== */
+.button--secondary {
+  background: var(--color-surface);
+  border: 1px solid var(--border-default);
+  color: var(--color-text-primary);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* ===== BUTTON GHOST ===== */
+.button--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+/* ===== BUTTON SIZE: SM ===== */
+.button--sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* ===== BUTTON SIZE: MD ===== */
+.button--md {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+}
+
+/* ===== BUTTON SIZE: LG ===== */
+.button--lg {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-lg);
+}

@@ -1,41 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-
-export interface NewsItem {
-  id: number;
-  title: string;
-  summary: string;
-  content: string;
-  category: string;
-  post_date: string;
-}
-
-interface UseNewsReturn {
-  news: NewsItem[];
-  isLoading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-}
+import type { NewsItem } from '../types/api.types';
+import type { UseNewsReturn } from '../types/hooks.types';
 
 export function useNews(): UseNewsReturn {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews: () => Promise<void> = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/content/');
+      const response: Response = await fetch('/api/content/');
 
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const data: NewsItem[] = await response.json();
-      const newsItems = data
-        .filter((item) => item.category === 'NEW')
-        .sort((a, b) => new Date(b.post_date).getTime() - new Date(a.post_date).getTime())
+      
+      const newsItems: NewsItem[] = data
+        .filter((item: NewsItem) => item.category === 'NEW')
+        .sort((a: NewsItem, b: NewsItem) => 
+          new Date(b.post_date).getTime() - new Date(a.post_date).getTime()
+        )
         .slice(0, 4);
 
       setNews(newsItems);
@@ -53,3 +42,5 @@ export function useNews(): UseNewsReturn {
 
   return { news, isLoading, error, refetch: fetchNews };
 }
+
+export default useNews;

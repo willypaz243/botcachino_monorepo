@@ -9,4 +9,21 @@ export default defineConfig({
       '/api': 'http://localhost:8000',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react')) {
+              return 'react-vendor'
+            }
+            if (id.includes('markdown') || id.includes('remark') || id.includes('rehype')) {
+              return 'markdown-vendor'
+            }
+            return 'vendor'
+          }
+        },
+      },
+    },
+  },
 })

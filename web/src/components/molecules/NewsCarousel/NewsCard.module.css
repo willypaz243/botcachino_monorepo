@@ -1,0 +1,102 @@
+/* ===== NEWS CARD BASE ===== */
+.newsCard {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(40px) scale(0.96);
+  transition:
+    opacity var(--transition-slow),
+    transform var(--transition-slow);
+  pointer-events: none;
+}
+
+/* ===== NEWS CARD ACTIVE ===== */
+.newsCard--active {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+/* ===== NEWS CARD BADGE ===== */
+.newsCardBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: 9999px;
+}
+
+/* ===== NEWS CARD TITLE ===== */
+.newsCardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== NEWS CARD SUMMARY ===== */
+.newsCardSummary {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== NEWS CARD FOOTER ===== */
+.newsCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: auto;
+}
+
+/* ===== NEWS CARD DATE ===== */
+.newsCardDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .newsCard {
+    padding: 20px 16px;
+    gap: 8px;
+  }
+
+  .newsCardTitle {
+    font-size: 16px;
+  }
+
+  .newsCardSummary {
+    -webkit-line-clamp: 2;
+  }
+}

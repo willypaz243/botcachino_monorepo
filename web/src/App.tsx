@@ -1,12 +1,14 @@
-import ChatPage from './components/chat/ChatPage'
-import './App.css'
+import React from 'react';
+import './styles/global.css';
+import { ChatPage } from './pages/ChatPage';
+import styles from './App.module.css';
 
-function App() {
+function App(): React.ReactNode {
   return (
-    <div className="app">
+    <div className={styles.app}>
       <ChatPage />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
