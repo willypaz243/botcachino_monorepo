@@ -1,5 +1,7 @@
-from pydantic import BaseModel, SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, SecretStr, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class ModelConfig(BaseModel):
@@ -41,12 +43,32 @@ class DatabaseConfig(BaseModel):
     model_config = SettingsConfigDict(env_nested_delimiter="_")
 
 
+class ApiConfig(BaseModel):
+    """Configuración del servidor API"""
+
+    key: str = ""
+    allowed_origins: Annotated[list[str], NoDecode] = ["https://botcachino.scesi.dev"]
+    host: str = "0.0.0.0"
+    port: int = 8000
+    debug: bool = False
+
+    model_config = SettingsConfigDict(env_nested_delimiter="_")
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def decode_allowed_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, list):
+            return value
+        return [origin.strip() for origin in value.split(",")]
+
+
 class Settings(BaseSettings):
     """Clase principal de configuración"""
 
     nebius: NebiusConfig
     agent: AgentConfig
     database: DatabaseConfig
+    api: ApiConfig
 
     model_config = SettingsConfigDict(
         env_file=".env",
