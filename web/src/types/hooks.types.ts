@@ -17,8 +17,11 @@ export interface UseChatReturn {
   messages: Message[];
   isLoading: boolean;
   isOnline: boolean;
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string, onBeforeSend?: () => Promise<void>) => void;
   clearChat: () => void;
+  setThreadId: (threadId: string) => void;
+  setMessages: (messages: Message[]) => void;
+  setOnDone: (cb: ((botMessageId: string) => void) | null) => void;
 }
 
 export interface UseNewsReturn {

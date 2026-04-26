@@ -2,7 +2,7 @@ import React, { useRef, useEffect, type FormEvent, type KeyboardEvent } from 're
 import styles from './MessageInput.module.css';
 
 interface MessageInputProps {
-  onSend: (_message: string) => void;
+  onSend: (_message: string) => void | Promise<void>;
   disabled: boolean;
   value: string;
   onChange: (_value: string) => void;

@@ -34,6 +34,7 @@ export function useChat(): UseChatReturn {
   const threadIdRef: React.MutableRefObject<string> = useRef<string>(getOrCreateThreadId());
   const cancelRef: React.MutableRefObject<(() => void) | null> = useRef(null);
   const lastInfoIdRef: React.MutableRefObject<string | null> = useRef(null);
+  const onDoneRef: React.MutableRefObject<((botMessageId: string) => void) | null> = useRef(null);
 
   useEffect(() => {
     const storedId: string | null = localStorage.getItem(STORAGE_KEY);
@@ -47,43 +48,48 @@ export function useChat(): UseChatReturn {
     }
   }, []);
 
-  const sendMessage: (content: string) => void = useCallback((content: string) => {
-    if (!content.trim() || isLoading) {
-      return;
-    }
+  const sendMessage: (content: string, onBeforeSend?: () => Promise<void>) => void = useCallback(
+    async (content: string, onBeforeSend?: () => Promise<void>) => {
+      if (!content.trim() || isLoading) {
+        return;
+      }
 
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: content,
-      timestamp: new Date(),
-      done: true,
-    };
+      if (onBeforeSend !== null && onBeforeSend !== undefined) {
+        await onBeforeSend();
+      }
 
-    const botMessageId: string = crypto.randomUUID();
-    const botMessage: Message = {
-      id: botMessageId,
-      role: 'bot',
-      content: '',
-      timestamp: new Date(),
-      done: false,
-    };
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: content,
+        timestamp: new Date(),
+        done: true,
+      };
 
-    setMessages((prev: Message[]) => [...prev, userMessage, botMessage]);
-    setIsLoading(true);
+      const botMessageId: string = crypto.randomUUID();
+      const botMessage: Message = {
+        id: botMessageId,
+        role: 'bot',
+        content: '',
+        timestamp: new Date(),
+        done: false,
+      };
 
-    cancelRef.current = streamSSE(
-      `${API_URL}/agent/chat`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      setMessages((prev: Message[]) => [...prev, userMessage, botMessage]);
+      setIsLoading(true);
+
+      cancelRef.current = streamSSE(
+        `${API_URL}/agent/chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: content,
+            thread_id: threadIdRef.current,
+          }),
         },
-        body: JSON.stringify({
-          message: content,
-          thread_id: threadIdRef.current,
-        }),
-      },
       (event: SSEEvent) => {
         if (event.type === 'text') {
           setMessages((prev: Message[]) => {
@@ -166,6 +172,10 @@ export function useChat(): UseChatReturn {
         });
         
         setIsLoading(false);
+        
+        if (onDoneRef.current !== null) {
+          onDoneRef.current(botMessageId);
+        }
       },
       (error: Error) => {
         const prevInfoId: string | null = lastInfoIdRef.current;
@@ -222,7 +232,16 @@ export function useChat(): UseChatReturn {
     };
   }, []);
 
-  return { messages, isLoading, isOnline, sendMessage, clearChat };
+  const setThreadId: (threadId: string) => void = useCallback((threadId: string) => {
+    localStorage.setItem(STORAGE_KEY, threadId);
+    threadIdRef.current = threadId;
+  }, []);
+
+  const setOnDone: (cb: ((botMessageId: string) => void) | null) => void = useCallback((cb: ((botMessageId: string) => void) | null) => {
+    onDoneRef.current = cb;
+  }, []);
+
+  return { messages, isLoading, isOnline, sendMessage, clearChat, setThreadId, setMessages, setOnDone };
 }
 
 export default useChat;

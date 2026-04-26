@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,12 +29,17 @@ class HistoryService:
         return new_conversation
 
     async def get_all_conversations(self, limit: int = 50, offset: int = 0) -> list[Conversation]:
-        query = select(Conversation).limit(limit).offset(offset)
+        query = (
+            select(Conversation)
+            .order_by(col(Conversation.updated_at).desc())
+            .limit(limit)
+            .offset(offset)
+        )
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
     async def get_conversation_by_uuid(self, uuid: str) -> Conversation | None:
-        return await self.session.get(Conversation, uuid)
+        return await self.session.get(Conversation, UUID(uuid))
 
     async def update_conversation(
         self, uuid: str, conversation_in: ConversationUpdate

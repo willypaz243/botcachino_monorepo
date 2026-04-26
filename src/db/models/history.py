@@ -53,6 +53,21 @@ class Conversation(ConversationBase, table=True):
     __tablename__ = "conversations"  # type: ignore
 
     uuid: UUID = Field(default_factory=uuid4, primary_key=True, index=True, nullable=False)
+    created_at: datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True),
+            server_default=text("now()"),
+            nullable=False,
+        ),
+    )
+    updated_at: datetime = Field(
+        sa_column=Column(
+            DateTime(timezone=True),
+            server_default=text("now()"),
+            onupdate=text("now()"),
+            nullable=False,
+        ),
+    )
 
     messages: List[Message] = Relationship(
         back_populates="conversation",
@@ -70,3 +85,5 @@ class ConversationUpdate(SQLModel):
 
 class ConversationRead(ConversationBase):
     uuid: UUID
+    created_at: datetime
+    updated_at: datetime
