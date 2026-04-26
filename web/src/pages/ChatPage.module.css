@@ -79,26 +79,6 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.chatHeaderClear {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.chatHeaderClear:hover {
-  color: var(--text-primary);
-  background: var(--bg-surface-hover);
-  border-color: var(--border-default);
-}
-
 .chatMessages {
   flex: 1;
   overflow-y: auto;
