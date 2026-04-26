@@ -137,7 +137,6 @@ export const ChatPage: React.FC = () => {
         <ChatHeader
           title="Botcachino"
           status={isLoading ? 'typing' : isOnline ? 'online' : 'offline'}
-          onClear={clearChat}
         />
 
         <NewsCarousel />

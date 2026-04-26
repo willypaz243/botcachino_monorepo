@@ -27,5 +27,4 @@ export interface BadgeProps {
 export interface ChatHeaderProps {
   title: string;
   status: 'online' | 'offline' | 'typing';
-  onClear?: () => void;
 }
