@@ -1,13 +1,15 @@
-import React from 'react';
-import './styles/global.css';
-import { ChatPage } from './pages/ChatPage';
-import styles from './App.module.css';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import { LandingPage } from "./pages/LandingPage/LandingPage";
+import { ChatPage } from "./pages/ChatPage";
+import "./styles/global.css";
 
 function App(): React.ReactNode {
   return (
-    <div className={styles.app}>
-      <ChatPage />
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/agent" element={<ChatPage />} />
+    </Routes>
   );
 }
 
