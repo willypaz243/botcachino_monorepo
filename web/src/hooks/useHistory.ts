@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import type { ConversationRead, MessageRead } from '../types/api.types';
 
 const API_URL: string = import.meta.env.VITE_API_URL || '/api';
+const API_KEY: string = import.meta.env.VITE_API_KEY || '';
 
 export interface UseHistoryReturn {
   conversations: ConversationRead[];
@@ -19,7 +20,9 @@ export function useHistory(): UseHistoryReturn {
   const loadConversations: () => Promise<void> = useCallback(async () => {
     setIsLoadingConversations(true);
     try {
-      const response: Response = await fetch(`${API_URL}/history/conversations/`);
+      const response: Response = await fetch(`${API_URL}/history/conversations/`, {
+        headers: { 'X-API-Key': API_KEY },
+      });
 
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
@@ -40,6 +43,7 @@ export function useHistory(): UseHistoryReturn {
       try {
         const response: Response = await fetch(
           `${API_URL}/history/conversations/${conversationUuid}/messages/`,
+          { headers: { 'X-API-Key': API_KEY } },
         );
 
         if (!response.ok) {
@@ -61,7 +65,7 @@ export function useHistory(): UseHistoryReturn {
     try {
       const response: Response = await fetch(`${API_URL}/history/conversations/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
         body: JSON.stringify({ title: conversationTitle }),
       });
 
@@ -85,7 +89,7 @@ export function useHistory(): UseHistoryReturn {
           `${API_URL}/history/conversations/${conversationUuid}/messages/`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
             body: JSON.stringify({ role, content }),
           },
         );

@@ -27,6 +27,8 @@ services:
       - .env
     environment:
       DATABASE__URL: "postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-botcachino}"
+      API__KEY: ${API__KEY}
+      API__ALLOWED_ORIGINS: ${API__ALLOWED_ORIGINS:-https://botcachino.scesi.dev}
     depends_on:
       db:
         condition: service_healthy

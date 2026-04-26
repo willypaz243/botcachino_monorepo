@@ -7,10 +7,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock ./
-
 RUN uv sync --frozen --no-dev
 COPY src/ src/
+COPY scripts/ scripts/
+COPY data/ data/
 COPY main.py .
+COPY web/dist/ web/dist/
 
 EXPOSE 8000
 

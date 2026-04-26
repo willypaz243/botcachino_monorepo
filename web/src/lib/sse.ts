@@ -20,6 +20,7 @@ export function streamSSE(
         headers: {
           Accept: "text/event-stream",
           "Content-Type": "application/json",
+          "X-API-Key": import.meta.env.VITE_API_KEY || "",
           ...options.headers,
         },
       });

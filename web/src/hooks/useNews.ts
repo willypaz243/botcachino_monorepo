@@ -12,7 +12,9 @@ export function useNews(): UseNewsReturn {
     setError(null);
 
     try {
-      const response: Response = await fetch('/api/content/');
+      const response: Response = await fetch('/api/content/', {
+        headers: { 'X-API-Key': import.meta.env.VITE_API_KEY || '' },
+      });
 
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);

@@ -10,10 +10,9 @@ build/
 dist/
 wheels/
 web/
+!web/dist/
 docs/
 tests/
-data/
-scripts/
 *.md
 .ruff_cache/
 node_modules/

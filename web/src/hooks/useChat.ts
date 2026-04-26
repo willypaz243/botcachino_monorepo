@@ -3,6 +3,7 @@ import type { Message, SSEEvent, UseChatReturn } from '../types/hooks.types';
 import { streamSSE }  from '../lib/sse';
 
 const API_URL: string = import.meta.env.VITE_API_URL || '/api';
+const API_KEY: string = import.meta.env.VITE_API_KEY || '';
 const STORAGE_KEY: string = 'botcachino_thread_id';
 
 const INITIAL_MESSAGE: Message = {
@@ -84,6 +85,7 @@ export function useChat(): UseChatReturn {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-API-Key': API_KEY,
           },
           body: JSON.stringify({
             message: content,
