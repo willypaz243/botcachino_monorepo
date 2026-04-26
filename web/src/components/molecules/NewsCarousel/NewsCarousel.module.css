@@ -86,6 +86,37 @@
   font-family: var(--font-mono);
 }
 
+.newsCarouselCollapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.newsCarouselCollapseBtn:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-hover);
+  border-color: var(--border-default);
+}
+
+.newsCarouselCollapseIcon {
+  transition: transform var(--transition-fast);
+}
+
+.newsCarouselCollapseIcon--collapsed {
+  transform: rotate(-90deg);
+}
+
 .newsCarouselViewport {
   position: relative;
   height: 220px;

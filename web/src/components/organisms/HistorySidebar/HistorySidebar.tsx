@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import type { ConversationRead } from '../../../types/api.types';
-import styles from './HistorySidebar.module.css';
+import React, { useState } from "react";
+import type { ConversationRead } from "../../../types/api.types";
+import styles from "./HistorySidebar.module.css";
 
 export interface HistorySidebarProps {
   activeChat?: string;
@@ -52,7 +52,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       date.getMonth() === today.getMonth() &&
       date.getDate() === today.getDate()
     ) {
-      return 'Hoy';
+      return "Hoy";
     }
 
     if (
@@ -60,11 +60,11 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       date.getMonth() === yesterday.getMonth() &&
       date.getDate() === yesterday.getDate()
     ) {
-      return 'Ayer';
+      return "Ayer";
     }
 
     const daysAgo: number = Math.floor(
-      (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
+      (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (daysAgo < 7) {
@@ -72,8 +72,18 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
     }
 
     const monthNames: string[] = [
-      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
     ];
 
     if (date.getFullYear() === today.getFullYear()) {
@@ -92,24 +102,26 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       acc[dateKey].push(conv);
       return acc;
     },
-    {} as Record<string, ConversationRead[]>
+    {} as Record<string, ConversationRead[]>,
   );
 
-  const dateOrder: string[] = ['Hoy', 'Ayer'];
-  const sortedDateKeys: string[] = Object.keys(groupedChats).sort((a: string, b: string) => {
-    const aIndex: number = dateOrder.indexOf(a);
-    const bIndex: number = dateOrder.indexOf(b);
-    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-    return 0;
-  });
+  const dateOrder: string[] = ["Hoy", "Ayer"];
+  const sortedDateKeys: string[] = Object.keys(groupedChats).sort(
+    (a: string, b: string) => {
+      const aIndex: number = dateOrder.indexOf(a);
+      const bIndex: number = dateOrder.indexOf(b);
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return 0;
+    },
+  );
 
   return (
     <>
       <aside
         className={`${styles.historySidebar} ${isOpen ? styles.open : styles.collapsed} ${
-          isMobileOpen ? styles['mobile-open'] : ''
+          isMobileOpen ? styles["mobile-open"] : ""
         }`}
       >
         <div className={styles.sidebarContent}>
@@ -119,7 +131,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
               <button
                 className={styles.sidebarToggle}
                 onClick={() => setIsOpen(!isOpen)}
-                title={isOpen ? 'Contraer' : 'Expandir'}
+                title={isOpen ? "Contraer" : "Expandir"}
                 aria-label="Toggle sidebar"
               >
                 <svg
@@ -170,13 +182,15 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         <button
                           key={conv.uuid}
                           className={`${styles.chatItem} ${
-                            activeChat === conv.uuid ? styles.active : ''
+                            activeChat === conv.uuid ? styles.active : ""
                           }`}
                           onClick={() => handleSelectChat(conv.uuid)}
                           title={conv.title}
                         >
                           <div className={styles.chatItemContent}>
-                            <span className={styles.chatTitle}>{conv.title}</span>
+                            <span className={styles.chatTitle}>
+                              {conv.title}
+                            </span>
                           </div>
                           <div className={styles.chatItemActions}>
                             <button

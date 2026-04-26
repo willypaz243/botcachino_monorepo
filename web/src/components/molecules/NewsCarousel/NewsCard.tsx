@@ -5,6 +5,7 @@ import styles from './NewsCard.module.css';
 interface NewsCardProps {
   item: NewsItem;
   isActive: boolean;
+  onAsk?: (titulo: string) => void;
 }
 
 function formatDate(isoString: string): string {
@@ -17,7 +18,7 @@ function formatDate(isoString: string): string {
   });
 }
 
-export const NewsCard: React.FC<NewsCardProps> = ({ item, isActive }) => {
+export const NewsCard: React.FC<NewsCardProps> = ({ item, isActive, onAsk }) => {
   return (
     <article
       className={`${styles.newsCard} ${isActive ? styles['newsCard--active'] : ''}`}
@@ -46,6 +47,15 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, isActive }) => {
           </svg>
           {formatDate(item.post_date)}
         </time>
+        
+        {isActive && onAsk && (
+          <button
+            className={styles.newsCardAskBtn}
+            onClick={() => onAsk(item.title)}
+          >
+            Preguntar →
+          </button>
+        )}
       </footer>
     </article>
   );

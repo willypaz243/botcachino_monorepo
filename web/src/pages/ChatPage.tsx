@@ -139,7 +139,13 @@ export const ChatPage: React.FC = () => {
           status={isLoading ? 'typing' : isOnline ? 'online' : 'offline'}
         />
 
-        <NewsCarousel />
+        <NewsCarousel
+          activeChatId={activeChat ?? undefined}
+          onAsk={(texto: string) => {
+            setInputValue(texto);
+            inputRef.current?.focus();
+          }}
+        />
 
         <div 
           className={styles.chatMessages}
