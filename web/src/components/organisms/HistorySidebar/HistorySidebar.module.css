@@ -7,6 +7,7 @@
   border-right: 1px solid var(--border-subtle);
   transition: width var(--transition-normal), opacity var(--transition-normal);
   z-index: 20;
+  contain: layout style;
 }
 
 .historySidebar.collapsed {
@@ -18,6 +19,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+  overflow: hidden;
   gap: 0;
 }
 
@@ -167,6 +170,7 @@
   font-size: 13px;
   font-family: var(--font-sans);
   overflow: hidden;
+  contain: layout style paint;
 }
 
 .chatItemContent {
@@ -247,6 +251,8 @@
   padding: 12px;
   border-top: 1px solid var(--border-subtle);
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebarFooterBtn {
@@ -296,17 +302,22 @@
   }
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
-.chatItem {
-  animation: slideInLeft var(--transition-normal);
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
 }
+

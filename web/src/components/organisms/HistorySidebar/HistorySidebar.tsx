@@ -1,72 +1,36 @@
 import React, { useState } from 'react';
+import type { ConversationRead } from '../../../types/api.types';
 import styles from './HistorySidebar.module.css';
-
-export interface ChatSession {
-  id: string;
-  title: string;
-  createdAt: Date;
-  updatedAt: Date;
-  messages: Array<{ role: string; content: string }>;
-}
 
 export interface HistorySidebarProps {
   activeChat?: string;
+  conversations?: ConversationRead[];
+  isLoadingConversations?: boolean;
   onChatSelect?: (chatId: string) => void;
-  onNewChat?: () => void;
+  onCreateChat?: () => void;
+  onRefetchConversations?: () => void;
 }
-
-const generateId = (): string => Math.random().toString(36).substring(2, 11);
 
 export const HistorySidebar: React.FC<HistorySidebarProps> = ({
   activeChat,
+  conversations = [],
+  isLoadingConversations = false,
   onChatSelect,
-  onNewChat,
+  onCreateChat,
+  onRefetchConversations,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
-  
-  const generateMockChats = (): ChatSession[] => [
-    {
-      id: generateId(),
-      title: 'Consulta sobre becas',
-      createdAt: new Date(Date.now() - 1000 * 60 * 30),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 30),
-      messages: [
-        { role: 'user', content: '¿Qué becas hay disponibles?' },
-        { role: 'bot', content: 'La universidad ofrece varias opciones...' },
-      ],
-    },
-    {
-      id: generateId(),
-      title: 'Información académica',
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      messages: [
-        { role: 'user', content: '¿Cuáles son los requisitos?' },
-        { role: 'bot', content: 'Los requisitos incluyen...' },
-      ],
-    },
-  ];
 
-  const [chats, setChats] = useState<ChatSession[]>(generateMockChats);
-
-  const handleNewChat = (): void => {
-    const newChat: ChatSession = {
-      id: generateId(),
-      title: 'Nuevo chat',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      messages: [],
-    };
-
-    setChats([newChat, ...chats]);
-
-    if (onNewChat) {
-      onNewChat();
+  const handleNewChat: () => void = () => {
+    if (onRefetchConversations) {
+      onRefetchConversations();
     }
-
+    if (onCreateChat) {
+      onCreateChat();
+    }
     if (onChatSelect) {
-      onChatSelect(newChat.id);
+      onChatSelect(crypto.randomUUID());
     }
   };
 
@@ -77,9 +41,10 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
     setIsMobileOpen(false);
   };
 
-  const formatDate = (date: Date): string => {
-    const today = new Date();
-    const yesterday = new Date(today);
+  const formatDate = (dateStr: string): string => {
+    const date: Date = new Date(dateStr);
+    const today: Date = new Date();
+    const yesterday: Date = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (
@@ -98,7 +63,7 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       return 'Ayer';
     }
 
-    const daysAgo = Math.floor(
+    const daysAgo: number = Math.floor(
       (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
     );
 
@@ -106,19 +71,9 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
       return `Hace ${daysAgo}d`;
     }
 
-    const monthNames = [
-      'Ene',
-      'Feb',
-      'Mar',
-      'Abr',
-      'May',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dic',
+    const monthNames: string[] = [
+      'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
     ];
 
     if (date.getFullYear() === today.getFullYear()) {
@@ -128,22 +83,22 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
-  const groupedChats = chats.reduce(
-    (acc, chat) => {
-      const dateKey = formatDate(chat.createdAt);
+  const groupedChats: Record<string, ConversationRead[]> = conversations.reduce(
+    (acc: Record<string, ConversationRead[]>, conv: ConversationRead) => {
+      const dateKey: string = formatDate(conv.updated_at);
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
-      acc[dateKey].push(chat);
+      acc[dateKey].push(conv);
       return acc;
     },
-    {} as Record<string, ChatSession[]>
+    {} as Record<string, ConversationRead[]>
   );
 
-  const dateOrder = ['Hoy', 'Ayer'];
-  const sortedDateKeys = Object.keys(groupedChats).sort((a, b) => {
-    const aIndex = dateOrder.indexOf(a);
-    const bIndex = dateOrder.indexOf(b);
+  const dateOrder: string[] = ['Hoy', 'Ayer'];
+  const sortedDateKeys: string[] = Object.keys(groupedChats).sort((a: string, b: string) => {
+    const aIndex: number = dateOrder.indexOf(a);
+    const bIndex: number = dateOrder.indexOf(b);
     if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
     if (aIndex !== -1) return -1;
     if (bIndex !== -1) return 1;
@@ -202,47 +157,53 @@ export const HistorySidebar: React.FC<HistorySidebarProps> = ({
           {/* Chat History */}
           {isOpen && (
             <div className={styles.chatHistory}>
-              {sortedDateKeys.map((dateKey) => (
-                <div key={dateKey} className={styles.chatGroup}>
-                  <div className={styles.chatGroupLabel}>{dateKey}</div>
-                  <div className={styles.chatItems}>
-                    {groupedChats[dateKey].map((chat) => (
-                      <button
-                        key={chat.id}
-                        className={`${styles.chatItem} ${
-                          activeChat === chat.id ? styles.active : ''
-                        }`}
-                        onClick={() => handleSelectChat(chat.id)}
-                        title={chat.title}
-                      >
-                        <div className={styles.chatItemContent}>
-                          <span className={styles.chatTitle}>{chat.title}</span>
-                        </div>
-                        <div className={styles.chatItemActions}>
-                          <button
-                            className={styles.chatActionBtn}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            title="Opciones"
-                          >
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
+              {isLoadingConversations ? (
+                <div className={styles.loadingText}>Cargando...</div>
+              ) : sortedDateKeys.length === 0 ? (
+                <div className={styles.emptyState}>No hay conversaciones</div>
+              ) : (
+                sortedDateKeys.map((dateKey: string) => (
+                  <div key={dateKey} className={styles.chatGroup}>
+                    <div className={styles.chatGroupLabel}>{dateKey}</div>
+                    <div className={styles.chatItems}>
+                      {groupedChats[dateKey].map((conv: ConversationRead) => (
+                        <button
+                          key={conv.uuid}
+                          className={`${styles.chatItem} ${
+                            activeChat === conv.uuid ? styles.active : ''
+                          }`}
+                          onClick={() => handleSelectChat(conv.uuid)}
+                          title={conv.title}
+                        >
+                          <div className={styles.chatItemContent}>
+                            <span className={styles.chatTitle}>{conv.title}</span>
+                          </div>
+                          <div className={styles.chatItemActions}>
+                            <button
+                              className={styles.chatActionBtn}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              title="Opciones"
                             >
-                              <circle cx="12" cy="5" r="2" />
-                              <circle cx="12" cy="12" r="2" />
-                              <circle cx="12" cy="19" r="2" />
-                            </svg>
-                          </button>
-                        </div>
-                      </button>
-                    ))}
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <circle cx="12" cy="5" r="2" />
+                                <circle cx="12" cy="12" r="2" />
+                                <circle cx="12" cy="19" r="2" />
+                              </svg>
+                            </button>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </div>

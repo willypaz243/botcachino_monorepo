@@ -4,8 +4,9 @@ from pydantic import BaseModel
 
 from src.agent import UniversityAgent
 from src.agent.streaming import format_sse
-from src.api.dependencies import get_content_service
+from src.api.dependencies import get_content_service, get_history_service
 from src.api.services.content_service import ContentService
+from src.api.services.history_service import HistoryService
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -17,8 +18,9 @@ class ChatRequest(BaseModel):
 
 async def get_agent(
     content_service: ContentService = Depends(get_content_service),
+    history_service: HistoryService | None = Depends(get_history_service),
 ) -> UniversityAgent:
-    return UniversityAgent(content_service)
+    return UniversityAgent(content_service, history_service)
 
 
 @router.post("/chat")

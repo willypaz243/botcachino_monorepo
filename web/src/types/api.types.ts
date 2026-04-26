@@ -26,3 +26,21 @@ export interface SSEEvent {
   type: 'text' | 'error' | 'info';
   done: boolean;
 }
+
+/* ============================================
+   HISTORY API TYPES - Tipos para historial de conversaciones
+   ============================================ */
+
+export interface ConversationRead {
+  uuid: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MessageRead {
+  uuid: string;
+  role: 'user' | 'bot';
+  content: string;
+  timestamp: string;
+}
