@@ -85,6 +85,31 @@
   color: var(--text-muted);
 }
 
+/* ===== NEWS CARD ASK BUTTON ===== */
+.newsCardAskBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.newsCardAskBtn:hover {
+  background: var(--accent);
+  color: var(--bg-surface);
+  border-color: var(--accent);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 640px) {
   .newsCard {
