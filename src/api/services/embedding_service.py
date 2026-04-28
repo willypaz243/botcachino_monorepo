@@ -19,6 +19,6 @@ class EmbbedingService:
 
     def pre_process_text(self, text: str) -> str:
         text = text.lower()
-        text = re.sub(r"[^a-z0-9\s]", "", text)
+        text = re.sub(r"[^\w\s]", "", text, flags=re.UNICODE)
         text = re.sub(r"\s+", " ", text).strip()
         return text

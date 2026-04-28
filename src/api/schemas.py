@@ -118,3 +118,24 @@ class SearchParams:
 
     start_date = DateFilterParams.start_date
     end_date = DateFilterParams.end_date
+
+    category = Query(
+        default=None,
+        title="Category filter",
+        description="Filter results by content category (INFO, NEW, SCHOLARSH, ANN).",
+        examples=["INFO", "SCHOLARSH", "ANN"],
+    )
+
+    sort = Query(
+        default=SortField.POST_DATE,
+        title="Sort field",
+        description="Field to sort results by. Default: post_date.",
+        examples=["post_date", "title", "category"],
+    )
+
+    order = Query(
+        default=SortOrder.DESC,
+        title="Sort order",
+        description="Sort direction: 'asc' for ascending, 'desc' for descending. Default: desc.",
+        examples=["asc", "desc"],
+    )

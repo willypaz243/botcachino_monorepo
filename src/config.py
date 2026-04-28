@@ -10,7 +10,6 @@ class ModelConfig(BaseModel):
     provider: str = "nebius"
     name: str = "openai/gpt-oss-120b-fast"
     temperature: float = 0.3
-    api_key: SecretStr | None = None
     base_url: str | None = None
 
 
@@ -26,15 +25,6 @@ class AgentConfig(BaseModel):
     router_model: ModelConfig
 
 
-class NebiusConfig(BaseModel):
-    """Configuración de Nebius"""
-
-    api_key: SecretStr
-    emb_model: str = "Qwen/Qwen3-Embedding-8B"
-
-    model_config = SettingsConfigDict(env_nested_delimiter="_")
-
-
 class DatabaseConfig(BaseModel):
     """Configuración de la base de datos"""
 
@@ -47,7 +37,7 @@ class ApiConfig(BaseModel):
     """Configuración del servidor API"""
 
     key: str = ""
-    allowed_origins: Annotated[list[str], NoDecode] = ["https://botcachino.scesi.dev"]
+    allowed_origins: Annotated[list[str], NoDecode]
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
@@ -65,7 +55,6 @@ class ApiConfig(BaseModel):
 class Settings(BaseSettings):
     """Clase principal de configuración"""
 
-    nebius: NebiusConfig
     agent: AgentConfig
     database: DatabaseConfig
     api: ApiConfig

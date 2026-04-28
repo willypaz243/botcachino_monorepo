@@ -36,6 +36,8 @@ app.add_api_route("/api/health", health_check, methods=["GET"])
 
 @app.middleware("http")
 async def validate_api_key(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
     if request.url.path.startswith("/api/") and request.url.path != "/api/health":
         api_key = request.headers.get("x-api-key")
         if not api_key or api_key != settings.api.key:

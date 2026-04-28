@@ -70,7 +70,6 @@ async def router_node(state: AgentState) -> dict[str, Any]:
         provider=settings.agent.router_model.provider,
         model_name=settings.agent.router_model.name,
         temperature=settings.agent.router_model.temperature,
-        api_key=settings.agent.router_model.api_key,
     ).with_structured_output(RouterOutput)
 
     response = state.get("response")

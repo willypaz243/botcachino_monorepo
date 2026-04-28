@@ -16,6 +16,7 @@ async def search_node(state: AgentState) -> dict[str, Any]:
     tools = {"semantic_search": search_tool}
 
     search_ctx = state.get("search") or SearchContext()
+
     raw_query = state["messages"][-1].content
     original_query = raw_query if isinstance(raw_query, str) else str(raw_query)
     excluded_ids = set(search_ctx.excluded_ids)
@@ -24,7 +25,6 @@ async def search_node(state: AgentState) -> dict[str, Any]:
         provider=settings.agent.router_model.provider,
         model_name=settings.agent.router_model.name,
         temperature=0.3,
-        api_key=settings.agent.router_model.api_key,
     ).bind_tools([search_tool])
 
     search_messages = [
@@ -34,7 +34,7 @@ async def search_node(state: AgentState) -> dict[str, Any]:
                 query=original_query,
             )
         ),
-        HumanMessage(content=original_query),
+        *state["messages"][-8:],
     ]
 
     search_response = await llm_with_tools.ainvoke(search_messages)
@@ -60,7 +60,6 @@ async def search_node(state: AgentState) -> dict[str, Any]:
         provider=settings.agent.model.provider,
         model_name=settings.agent.model.name,
         temperature=0,
-        api_key=settings.agent.model.api_key,
     )
     structured_model = chat_model.with_structured_output(EvaluationContext)
 

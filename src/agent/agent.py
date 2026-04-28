@@ -9,6 +9,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
 
 from src.agent.constants import INFO_MESSAGES, RETRY_MESSAGES
+from src.agent.exceptions import ModelError, SearchError
 from src.agent.graph import build_agent_graph
 from src.agent.services import AgentServices
 from src.agent.state import AgentState, ResponseContext, SearchContext
@@ -17,6 +18,55 @@ from src.api.services.history_service import HistoryService
 from src.db.models.history import ConversationCreate, ConversationUpdate, MessageCreate, Role
 
 logger = logging.getLogger(__name__)
+
+
+def _is_rate_limit_error(error: Exception) -> bool:
+    """Detectar errores de rate limit (429) de cualquier provider."""
+    # ChatCerebras hereda de BaseChatOpenAI → usa openai.RateLimitError
+    try:
+        from openai import RateLimitError as OpenAIRateLimitError
+
+        if isinstance(error, OpenAIRateLimitError):
+            return True
+    except ImportError:
+        pass
+
+    # Groq tiene su propio RateLimitError
+    try:
+        from groq import RateLimitError as GroqRateLimitError
+
+        if isinstance(error, GroqRateLimitError):
+            return True
+    except ImportError:
+        pass
+
+    # Google API usa google.api_core.exceptions.ResourceExhausted
+    try:
+        from google.api_core.exceptions import ResourceExhausted
+
+        if isinstance(error, ResourceExhausted):
+            return True
+    except ImportError:
+        pass
+
+    # También puede venir como AttributeError en algunos casos
+    if hasattr(error, "__class__") and "google" in str(type(error)).lower():
+        error_str = str(error).lower()
+        if "resource_exhausted" in error_str or "429" in error_str:
+            return True
+
+    error_str = str(error).lower()
+    if "429" in error_str or "rate limit" in error_str:
+        return True
+
+    cause = error.__cause__
+    while cause:
+        cause_str = str(cause).lower()
+        if "429" in cause_str or "rate limit" in cause_str:
+            return True
+        cause = cause.__cause__
+
+    return False
 
 
 class UniversityAgent:
@@ -172,12 +222,29 @@ class UniversityAgent:
                                     "content": RETRY_MESSAGES[message_index],
                                 }
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            yield {
-                "event": "error",
-                "content": "Error inesperado",
-            }
+
+            if _is_rate_limit_error(e):
+                yield {
+                    "event": "error",
+                    "content": "El servicio está muy ocupado. Espera al menos 1 minuto antes de intentar nuevamente. si sigue sin funcionar vuelve mas tarde",
+                }
+            elif isinstance(e, ModelError):
+                yield {
+                    "event": "error",
+                    "content": f"Error en el modelo: {str(e)}",
+                }
+            elif isinstance(e, SearchError):
+                yield {
+                    "event": "error",
+                    "content": f"Error en la búsqueda: {str(e)}",
+                }
+            else:
+                yield {
+                    "event": "error",
+                    "content": "Error inesperado",
+                }
 
         await self._save_conversation(thread_id, message, bot_response)
 

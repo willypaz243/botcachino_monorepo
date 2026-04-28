@@ -82,13 +82,8 @@ async def seed_data():
                     # We use the emb_service to pre-process the text
                     processed_title = emb_service.pre_process_text(title)
                     processed_summary = emb_service.pre_process_text(summary)
-                    processed_content = emb_service.pre_process_text(content)
 
-                    text_content = (
-                        f"#{processed_title}\n\n"
-                        f"## Summary\n{processed_summary}\n\n"
-                        f"## Content\n{processed_content}"
-                    )
+                    text_content = f"#{processed_title}\n## Summary\n{processed_summary}\n"
 
                     texts_to_embed.append(text_content)
 

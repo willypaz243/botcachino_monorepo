@@ -39,9 +39,8 @@ class ContentService:
 
     async def create_content(self, content_in: ContentCreate) -> Content:
         text_content = (
-            f"#{self.emb_service.pre_process_text(content_in.title)}\n\n"
-            f"## Summary\n{self.emb_service.pre_process_text(content_in.summary)}\n\n"
-            f"## Content\n{self.emb_service.pre_process_text(content_in.content)}"
+            f"#{self.emb_service.pre_process_text(content_in.title)}\n"
+            f"## Summary\n{self.emb_service.pre_process_text(content_in.summary)}\n"
         )
 
         new_content = Content(**content_in.model_dump())
@@ -103,9 +102,8 @@ class ContentService:
 
         if text_changed:
             text_content = (
-                f"#{self.emb_service.pre_process_text(content.title)}\n\n"
-                f"## Summary\n{self.emb_service.pre_process_text(content.summary)}\n\n"
-                f"## Content\n{self.emb_service.pre_process_text(content.content)}"
+                f"#{self.emb_service.pre_process_text(content.title)}\n"
+                f"## Summary\n{self.emb_service.pre_process_text(content.summary)}\n"
             )
             content.embedding = await self.emb_service.embed_text(text_content)
 
@@ -127,24 +125,38 @@ class ContentService:
         query_text: str,
         limit: int = 20,
         offset: int = 0,
+        categories: list[Category] | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
+        sort_field: SortField = SortField.POST_DATE,
+        sort_order: SortOrder = SortOrder.DESC,
     ) -> list[Content]:
         normalized_text = self.emb_service.pre_process_text(query_text)
         query_embedding = await self.emb_service.embed_text(normalized_text)
 
         query = select(Content)
 
+        if categories:
+            query = query.where(col(Content.category).in_(categories))
         if start_date is not None:
             query = query.where(col(Content.post_date) >= start_date)
         if end_date is not None:
             query = query.where(col(Content.post_date) <= end_date)
 
-        query = (
-            query.order_by(col(Content.embedding).op("<=>")(query_embedding))
-            .limit(limit)
-            .offset(offset)
-        )
+        column = SORT_FIELD_MAP[sort_field]
+        order_func = SORT_ORDER_MAP[sort_order]
+
+        if sort_field == SortField.POST_DATE:
+            query = query.order_by(order_func(column)).limit(limit).offset(offset)
+        else:
+            query = (
+                query.order_by(
+                    order_func(column), col(Content.embedding).op("<=>")(query_embedding)
+                )
+                .limit(limit)
+                .offset(offset)
+            )
+
         result = await self.session.execute(query)
         return list(result.scalars().all())
 
@@ -174,5 +186,6 @@ class ContentService:
     async def format_content_summary(self, content: Content) -> dict:
         return {
             "id": content.id,
+            "title": content.title,
             "summary": content.summary,
         }

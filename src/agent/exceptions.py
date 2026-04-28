@@ -17,6 +17,12 @@ class ContentNotFoundError(AgentError):
     pass
 
 
+class RateLimitError(AgentError):
+    """Excepción para rate limit (429 Too Many Requests)."""
+
+    pass
+
+
 def format_error_response(error: Exception) -> dict[str, Any]:
     if isinstance(error, ModelError):
         return {
@@ -32,6 +38,11 @@ def format_error_response(error: Exception) -> dict[str, Any]:
         return {
             "type": "error",
             "content": f"Contenido no encontrado: {str(error)}",
+        }
+    elif isinstance(error, RateLimitError):
+        return {
+            "type": "error",
+            "content": "El servicio está muy ocupado. Espera al menos 1 minuto antes de intentar nuevamente. si sigue sin funcionar vuelve mas tarde",
         }
     else:
         return {

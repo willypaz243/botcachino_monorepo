@@ -43,7 +43,6 @@ async def respond_node(state: AgentState) -> dict[str, Any]:
         provider=settings.agent.model.provider,
         model_name=settings.agent.model.name,
         temperature=settings.agent.model.temperature,
-        api_key=settings.agent.model.api_key,
     )
 
     messages = [

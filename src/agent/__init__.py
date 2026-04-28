@@ -3,6 +3,7 @@ from src.agent.exceptions import (
     AgentError,
     ContentNotFoundError,
     ModelError,
+    RateLimitError,
     SearchError,
 )
 from src.agent.state import AgentState
@@ -13,5 +14,6 @@ __all__ = [
     "AgentError",
     "ContentNotFoundError",
     "ModelError",
+    "RateLimitError",
     "SearchError",
 ]
