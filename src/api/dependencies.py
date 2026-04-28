@@ -1,18 +1,19 @@
 from fastapi import Depends
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.services.content_service import ContentService
 from src.api.services.embedding_service import EmbbedingService
 from src.api.services.history_service import HistoryService
+from src.config import settings
 from src.db.database import get_session
 
 
 async def get_emb_service():
-    emb_model = HuggingFaceEmbeddings(
-        model_name="jinaai/jina-embeddings-v2-base-es",
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True},
+    emb_model = GoogleGenerativeAIEmbeddings(
+        model="models/gemini-embedding-001",
+        task_type="retrieval_document",
+        api_key=settings.google_api_key,
     )
     return EmbbedingService(emb_model)
 

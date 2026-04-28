@@ -8,10 +8,6 @@ RUN apt-get update && \
 
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
-COPY src/ src/
-COPY scripts/ scripts/
-COPY data/ data/
-COPY main.py .
 
 EXPOSE 8000
 

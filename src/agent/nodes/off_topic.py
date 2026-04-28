@@ -1,6 +1,6 @@
 from typing import Any
 
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.agent.constants import (
     OFFTOPIC_CAPABILITIES_PROMPT,
@@ -52,7 +52,10 @@ async def off_topic_node(state: AgentState) -> dict[str, Any]:
             university=university, categories=categories
         )
 
-    messages = [SystemMessage(content=system_prompt)]
+    messages = [
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=" "),
+    ]
     response = await llm.ainvoke(messages)
 
     content = response.content

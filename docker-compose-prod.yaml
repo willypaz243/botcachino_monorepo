@@ -30,6 +30,10 @@ services:
       API__KEY: ${API__KEY}
       API__ALLOWED_ORIGINS: ${API__ALLOWED_ORIGINS:-https://botcachino.scesi.dev}
     volumes:
+      - ./src:/app/src
+      - ./scripts:/app/scripts
+      - ./data:/app/data
+      - ./main.py:/app/main.py
       - ./web/dist:/app/web/dist
     depends_on:
       db:

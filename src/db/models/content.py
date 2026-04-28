@@ -48,7 +48,7 @@ class ContentBase(SQLModel):
 
 class Content(ContentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    embedding: list[float] = Field(sa_column=Column(VECTOR(768)), exclude=True)
+    embedding: list[float] = Field(sa_column=Column(VECTOR(3072)), exclude=True)
     created_at: datetime = Field(
         sa_column=Column(
             DateTime(timezone=True),

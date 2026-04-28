@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     database: DatabaseConfig
     api: ApiConfig
 
+    # AI Api keys
+    google_api_key: SecretStr
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
