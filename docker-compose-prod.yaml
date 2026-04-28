@@ -29,6 +29,8 @@ services:
       DATABASE__URL: "postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-botcachino}"
       API__KEY: ${API__KEY}
       API__ALLOWED_ORIGINS: ${API__ALLOWED_ORIGINS:-https://botcachino.scesi.dev}
+    volumes:
+      - ./web/dist:/app/web/dist
     depends_on:
       db:
         condition: service_healthy

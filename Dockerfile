@@ -12,7 +12,6 @@ COPY src/ src/
 COPY scripts/ scripts/
 COPY data/ data/
 COPY main.py .
-COPY web/dist/ web/dist/
 
 EXPOSE 8000
 
