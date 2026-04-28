@@ -66,11 +66,9 @@ async def router_node(state: AgentState) -> dict[str, Any]:
     services = get_services()
     await services.get_search_tool()
 
-    llm = get_chat_model(
-        provider=settings.agent.router_model.provider,
-        model_name=settings.agent.router_model.name,
-        temperature=settings.agent.router_model.temperature,
-    ).with_structured_output(RouterOutput)
+    llm = get_chat_model(model_config=settings.agent.router_model).with_structured_output(
+        RouterOutput
+    )
 
     response = state.get("response")
     has_content = bool(response and response.relevant_contents)

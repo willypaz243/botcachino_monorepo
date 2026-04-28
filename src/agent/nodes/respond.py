@@ -39,11 +39,7 @@ async def respond_node(state: AgentState) -> dict[str, Any]:
 
     context = "\n\n---\n\n".join(context_parts)
 
-    llm = get_chat_model(
-        provider=settings.agent.model.provider,
-        model_name=settings.agent.model.name,
-        temperature=settings.agent.model.temperature,
-    )
+    llm = get_chat_model(model_config=settings.agent.model)
 
     messages = [
         SystemMessage(
@@ -58,8 +54,17 @@ async def respond_node(state: AgentState) -> dict[str, Any]:
 
     full_response = ""
     async for chunk in llm.astream(messages):
-        if chunk.content and isinstance(chunk.content, str):
+        if not chunk.content:
+            continue
+        if isinstance(chunk.content, str):
             full_response += chunk.content
+        elif isinstance(chunk.content, list):
+            for part in chunk.content:
+                if isinstance(part, str):
+                    full_response += part
+                elif isinstance(part, dict):
+                    text = part.get("text", "")
+                    full_response += text
 
     return {
         "response": ResponseContext(

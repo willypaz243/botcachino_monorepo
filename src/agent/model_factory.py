@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from langchain_core.language_models import BaseChatModel
 from pydantic import SecretStr
 
+from src.config import ModelConfig
+
 load_dotenv()
 
 _DEFAULT_REQUEST_DELAY = float(os.getenv("AGENT__REQUEST_DELAY", "0.5"))
@@ -67,10 +69,9 @@ class _RateLimitedModel:
 
 
 def get_chat_model(
-    provider: str,
-    model_name: str,
-    temperature: float = 0.3,
+    model_config: ModelConfig,
     request_delay: float | None = None,
+    temperature_override: float | None = None,
 ) -> BaseChatModel:
     """Create a chat model instance based on provider config.
 
@@ -86,33 +87,35 @@ def get_chat_model(
       - nebius   → NEBIUS__API_KEY
 
     Args:
-        provider: Provider del modelo LLM
-        model_name: Nombre del modelo
-        temperature: Temperatura de generación
+        model_config: Configuración completa del modelo (provider, name, temperature, etc.)
         request_delay: Delay en segundos entre requests (default: 0.5s, configurable con AGENT__REQUEST_DELAY)
     """
 
+    provider = model_config.provider
     api_key = _get_api_key(provider)
     delay = request_delay if request_delay is not None else _DEFAULT_REQUEST_DELAY
+    temperature = (
+        temperature_override if temperature_override is not None else model_config.temperature
+    )
 
     raw_model: BaseChatModel
     if provider == "openai":
         from langchain_openai import ChatOpenAI  # type: ignore[no-redef]
 
-        raw_model = ChatOpenAI(model=model_name, temperature=temperature, api_key=api_key)  # type: ignore[arg-type]
+        raw_model = ChatOpenAI(model=model_config.name, temperature=temperature, api_key=api_key)  # type: ignore[arg-type]
     elif provider == "anthropic":
         from langchain_anthropic import ChatAnthropic  # type: ignore[import-not-found, no-redef]
 
-        raw_model = ChatAnthropic(model=model_name, temperature=temperature, api_key=api_key)  # type: ignore[arg-type]
+        raw_model = ChatAnthropic(model=model_config.name, temperature=temperature, api_key=api_key)  # type: ignore[arg-type]
     elif provider == "cerebras":
         from langchain_cerebras import ChatCerebras
 
-        raw_model = ChatCerebras(model=model_name, temperature=temperature, api_key=api_key)
+        raw_model = ChatCerebras(model=model_config.name, temperature=temperature, api_key=api_key)
     elif provider == "groq":
         from langchain_groq import ChatGroq
 
         raw_model = ChatGroq(
-            model=model_name,  # type: ignore[arg-type]
+            model=model_config.name,  # type: ignore[arg-type]
             temperature=temperature,
             api_key=api_key,
             reasoning_effort="low",
@@ -121,13 +124,14 @@ def get_chat_model(
         from langchain_google_genai import ChatGoogleGenerativeAI
 
         raw_model = ChatGoogleGenerativeAI(
-            model=model_name,  # type: ignore[arg-type]
+            model=model_config.name,  # type: ignore[arg-type]
             temperature=temperature,
+            thinking_budget=model_config.thinking_budget,
         )
     else:
         from langchain_nebius import ChatNebius
 
-        raw_model = ChatNebius(model=model_name, api_key=api_key, temperature=temperature)
+        raw_model = ChatNebius(model=model_config.name, api_key=api_key, temperature=temperature)
 
     if delay > 0:
         return _RateLimitedModel(raw_model, delay)  # type: ignore[return-value]

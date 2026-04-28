@@ -11,6 +11,7 @@ class ModelConfig(BaseModel):
     name: str = "openai/gpt-oss-120b-fast"
     temperature: float = 0.3
     base_url: str | None = None
+    thinking_budget: int = 256
 
 
 class AgentConfig(BaseModel):

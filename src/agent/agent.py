@@ -190,11 +190,18 @@ class UniversityAgent:
                                 content = msg_chunk.content
                                 if isinstance(content, str):
                                     bot_response += content
-                                else:
+                                    yield {"event": "text", "content": content}
+                                elif isinstance(content, list):
+                                    text_parts: list[str] = []
                                     for part in content:
                                         if isinstance(part, str):
+                                            text_parts.append(part)
                                             bot_response += part
-                                yield {"event": "text", "content": msg_chunk.content}
+                                        elif isinstance(part, dict):
+                                            text = part.get("text", "")
+                                            text_parts.append(text)
+                                            bot_response += text
+                                    yield {"event": "text", "content": "".join(text_parts)}
                 elif part_type == "updates":
                     data = event.get("data")
                     if isinstance(data, dict):

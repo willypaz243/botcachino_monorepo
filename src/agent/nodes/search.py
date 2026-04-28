@@ -22,9 +22,7 @@ async def search_node(state: AgentState) -> dict[str, Any]:
     excluded_ids = set(search_ctx.excluded_ids)
 
     llm_with_tools = get_chat_model(
-        provider=settings.agent.router_model.provider,
-        model_name=settings.agent.router_model.name,
-        temperature=0.3,
+        model_config=settings.agent.router_model, temperature_override=0.3
     ).bind_tools([search_tool])
 
     search_messages = [
@@ -56,11 +54,7 @@ async def search_node(state: AgentState) -> dict[str, Any]:
             ),
         }
 
-    chat_model = get_chat_model(
-        provider=settings.agent.model.provider,
-        model_name=settings.agent.model.name,
-        temperature=0,
-    )
+    chat_model = get_chat_model(model_config=settings.agent.model, temperature_override=0)
     structured_model = chat_model.with_structured_output(EvaluationContext)
 
     system_message = SystemMessage(

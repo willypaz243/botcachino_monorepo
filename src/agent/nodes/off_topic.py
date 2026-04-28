@@ -30,11 +30,7 @@ async def off_topic_node(state: AgentState) -> dict[str, Any]:
     routing = state.get("routing") or RoutingResult(is_relevant=False)
     reason = routing.reason or "not_related"
 
-    llm = get_chat_model(
-        provider=settings.agent.model.provider,
-        model_name=settings.agent.model.name,
-        temperature=settings.agent.model.temperature,
-    )
+    llm = get_chat_model(model_config=settings.agent.model)
 
     university = settings.agent.university_name
     categories = _get_categories_string()
